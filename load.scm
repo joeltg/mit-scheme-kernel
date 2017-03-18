@@ -138,7 +138,6 @@
   (cons (zmq-receive socket len) blobs))
 
 (define (shell-handler socket pollitem)
-  (pp "shell!")
   (let ((blobs (reverse (fold-left (shell-fold socket) '() lengths))))
     (let ((uuid (car blobs))
 	  (deli (cadr blobs))
@@ -151,7 +150,6 @@
 (define control-handler shell-handler)
 
 (define (hb-handler socket pollitem)
-  (pp "hb!")
   (zmq-send socket (zmq-receive socket hb-length)))
 
 (define handlers (list hb-handler shell-handler control-handler))
