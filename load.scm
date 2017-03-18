@@ -6,6 +6,13 @@
 (cd "/home/joel/Documents/zmq.scm")
 (load "zmq")
 
+(cd "/home/joel/.local/share/jupyter/kernels/ischeme")
+(load "utils")
+(load "kernel-info")
+(load "execute")
+
+(define delimiter "<IDS|MSG>")
+
 (define args (command-line))
 (assert (> (length args) 0))
 (define file (open-input-file (car args)))
@@ -14,7 +21,8 @@
 
 (define dict (vector-ref json 0))
 
-(define (ref key) (cdr  (assq key dict)))
+(define (ref key)
+  (cdr (assq key dict)))
 (define control-port     (ref 'control_port))
 (define shell-port       (ref 'shell_port))
 (define transport        (ref 'transport))
@@ -28,214 +36,135 @@
 (pp "loaded config")
 (pp dict)
 
-(define endpoint
-  (string-append transport "://" ip ":"))
-(define control-endpoint
-  (string-append endpoint (number->string control-port)))
-(define shell-endpoint
-  (string-append endpoint (number->string shell-port)))
-(define stdin-endpoint
-  (string-append endpoint (number->string stdin-port)))
-(define heartbeat-endpoint
-  (string-append endpoint (number->string hb-port)))
-(define iopub-endpoint
-  (string-append endpoint (number->string iopub-port)))
+(define (make-endpoint port)
+  (string-append transport "://" ip ":" (number->string port)))
 
-(define endpoints
-  (list heartbeat-endpoint shell-endpoint control-endpoint))
+(define control-endpoint (make-endpoint control-port))
+(define shell-endpoint (make-endpoint shell-port))
+(define stdin-endpoint (make-endpoint stdin-port))
+(define hb-endpoint (make-endpoint hb-port))
+(define iopub-endpoint (make-endpoint iopub-port))
 
-(define pub-socket (make-zmq-socket context 'pub))
-(zmq-socket-bind pub-socket iopub-endpoint)
-
-(define kernel-info
-  '((protocol_version . "5.1")
-    (implementation . "ischeme")
-    (implementation_version . "0.0.1")
-    (language_info . ((name . "MIT Scheme")
-		      (version . "9.2.1")
-		      (mimetype . "text/scheme")
-		      (file_extension . ".scm")
-		      (pygments_lexer . "mit-scheme")
-		      (codemirror_mode . "scheme")))
-    (banner . "MIT Scheme Kernel")
-    (help_links . #(((text . "GitHub")
-		     (url . "https://github.com/joeltg/ischeme"))))))
+(define endpoints (list hb-endpoint shell-endpoint control-endpoint))
 
 (define context (make-zmq-context))
 
-(define (get-msg-id)
-  (number->string (random (expt 2 128)) 16))
+(define hb-socket (make-zmq-socket context 'rep))
+(define shell-socket (make-zmq-socket context 'router))
+(define control-socket (make-zmq-socket context 'router))
+(define iopub-socket (make-zmq-socket context 'pub))
+(define stdin-socket (make-zmq-socket context 'router))
 
-(define (pad n l)
-  (let ((s (number->string n)))
-    (string-append (make-string (- l (string-length s)) #\0) s)))
+(define sockets (list hb-socket shell-socket control-socket))
+(define pollitems (make-pollitems 3 sockets (make-list 3 '(pollin))))
 
-(define (get-date)
-  (let ((time (global-decoded-time)))
-    (string-append
-     (pad (decoded-time/year time) 4)
-     "-"
-     (pad (decoded-time/month time) 2)
-     "-"
-     (pad (decoded-time/day time) 2)
-     "T"
-     (pad (decoded-time/hour time) 2)
-     ":"
-     (pad (decoded-time/minute time) 2)
-     ":"
-     (pad (decoded-time/second time) 2)
-     "Z")))
+(zmq-socket-bind iopub-socket iopub-endpoint)
+(zmq-socket-bind stdin-socket stdin-endpoint)
+(for-each zmq-socket-bind sockets endpoints)
 
-(define (reply socket uuid header msg-type content)
-  (let ((username (cdr (assq 'username header)))
-	(session (cdr (assq 'session header))))
-    (for-each
-     (lambda (blob)
-       (zmq-send socket blob))
-     (list
-      (
-    (zmq-send
-     socket
-     (json-encode
-      `((header . ((msg_id   . ,(get-msg-id))
-		   (username . ,username)
-		   (session  . ,session)
-		   (date     . ,(get-date))
-		   (msg_type . ,msg-type)
-		   (version  . "5.1")))
-	(parent_header . ,header)
-	(metadata . ())
-	(content . ,content)
-	(buffers . #()))))))
+(define (reply socket uuid parent msg-type content)
+  (let ((header (make-header parent msg-type)))
+    (let ((json (list header parent '() content)))
+      (let ((blobs (map json-encode json)))
+	(let ((hmac (make-hmac signature-scheme key blobs)))
+	  (apply zmq-send-list socket uuid delimiter hmac blobs))))))
 
-(define (pub header state)
-  (reply pub-socket header "status" `((execution_state . ,state))))
+(define (pub uuid header state)
+  (reply iopub-socket
+	 uuid
+	 header
+	 "status"
+	 `((execution_state . ,state))))
 
-(define (execute-request header content socket)
-  #!unspecific)
+(define (shutdown-reply socket uuid header content)
+  (reply socket uuid header "shutdown_reply" content))
 
-(define (inspect-request header content socket)
-  #!unspecific)
+(define (shutdown-request socket uuid json)
+  (let ((content (get-content json))
+	(header (get-header json)))
+    (pp "exiting scheme")
+    (shutdown-reply socket uuid header content)
+    (%exit)))
 
-(define (complete-request header content socket)
-  #!unspecific)
+(define (inspect-request socket uuid json) #!unspecific)
+(define (complete-request socket uuid json) #!unspecific)
+(define (history-request socket uuid json) #!unspecific)
+(define (is-complete-request socket uuid json) #!unspecific)
+(define (comm-info-request socket uuid json) #!unspecific)
+(define (input-request socket uuid json) #!unspecific)
 
-(define (history-request header content socket)
-  #!unspecific)
+(define (route-message msg-type)
+  (cond ((string=? msg-type "execute_request") execute-request)
+	((string=? msg-type "inspect-request") inspect-request)
+	((string=? msg-type "complete_request") complete-request)
+	((string=? msg-type "history_request") history-request)
+	((string=? msg-type "is_complete_request") is-complete-request)
+	((string=? msg-type "comm_info_request") comm-info-request)
+	((string=? msg-type "kernel_info_request") kernel-info-request)
+	((string=? msg-type "shutdown_request") shutdown-request)
+	((string=? msg-type "input_request") input-request)))
 
-(define (is-complete-request header content socket)
-  #!unspecific)
+(define get-header car)
+(define get-parent cadr)
+(define get-metadata caddr)
+(define get-content cadddr)
 
-(define (comm-info-request header content socket)
-  #!unspecific)
+(define hb-length 4)
+(define uuid-length 33)
+(define delimiter-length (string-length delimiter))
+(define signature-length 64)
+(define header-length 256)
+(define parent-length 256)
+(define metadata-length 2)
+(define content-length 4096)
+(define lengths
+  (list uuid-length
+	delimiter-length
+	signature-length
+	header-length
+	parent-length
+	metadata-length
+	content-length))
 
-(define (kernel-info-request header content socket)
-  (pp "kernel info request")
-  (pub 'busy)
-  (kernel-info-reply header content socket))
+(define ((8b-ref string) k)
+  (vector-8b-ref string k))
 
-(define (kernel-info-reply header content socket)
-  (reply socket header "kernel_info_reply" kernel-info))
-
-(define (shutdown-request header content socket)
-  #!unspecific)
-
-(define (input-request header content socket)
-  #!unspecific)
-
-(define (handle-shell socket content meta parent header)
-  (pp "handling shell")
-  (define msg-type (cdr (assq 'msg_type header)))
-  (cond ((string=? msg-type "execute_request")
-	 (execute-request header content socket))
-	((string=? msg-type "inspect-request")
-	 (inspect-request header content socket))
-	((string=? msg-type "complete_request")
-	 (complete-request header content socket))
-	((string=? msg-type "history_request")
-	 (history-request header content socket))
-	((string=? msg-type "is_complete_request")
-	 (is-complete-request header content socket))
-	((string=? msg-type "comm_info_request")
-	 (comm-info-request header content socket))
-	((string=? msg-type "kernel_info_request")
-	 (kernel-info-request header content socket))
-	((string=? msg-type "shutdown_request")
-	 (shutdown-request header content socket))
-	((string=? msg-type "input_request")
-	 (input-request header content socket))))
-
-(define shell-lengths
-  (list 33 9 64 2048 2048 1024 4096))
+(define (vector-ref-0 vector)
+  (if (and vector (vector? vector))
+      (vector-ref vector 0)
+      (error "could not parse json")))
 
 (define ((shell-fold socket) blobs len)
   (cons (zmq-receive socket len) blobs))
 
-(define (vector-ref-0 vector)
-  (vector-ref vector 0))
-
-(define (shell-handler socket pollitem size)
+(define (shell-handler socket pollitem)
   (pp "shell!")
-  (let ((blobs (fold-left (shell-fold socket) '() shell-lengths)))
-    (let ((json (map json-decode (list-head blobs 4))))
-      (apply handle-shell socket (map vector-ref-0 json)))))
+  (let ((blobs (reverse (fold-left (shell-fold socket) '() lengths))))
+    (let ((uuid (car blobs))
+	  (deli (cadr blobs))
+	  (hmac (caddr blobs))
+	  (json (map vector-ref-0 (map json-decode (cdddr blobs)))))
+      (assert (string=? deli delimiter))
+      (let ((msg-type (cdr (assq 'msg_type (car json)))))
+	((route-message msg-type) socket uuid json)))))
 
-(define ((8b-ref string) k) (vector-8b-ref string k))
+(define control-handler shell-handler)
 
-(define (heartbeat-handler socket pollitem size)
-  (pp "heartbeat!")
-  (let ((message (zmq-receive socket size)))
-    (zmq-send socket message)))
+(define (hb-handler socket pollitem)
+  (pp "hb!")
+  (zmq-send socket (zmq-receive socket hb-length)))
 
-(define handlers (list heartbeat-handler shell-handler shell-handler))
+(define handlers (list hb-handler shell-handler control-handler))
 
-(define (get-pollitem pollitems index)
-  (alien-byte-increment
-   pollitems
-   (* index zmq-poll-size)
-   'zmq_pollitem_t))
-
-(define ((make-pollitem pollitems) i socket events)
-  (let ((pollitem (get-pollitem pollitems i)))
-    (c->= pollitem "zmq_pollitem_t socket" socket)
-    (c->= pollitem "zmq_pollitem_t events" events)
-    pollitem))
-
-(define (make-pollitems n sockets event-lists)
-  (let ((pollitems (malloc (* n zmq-poll-size) 'zmq_pollitem_t)))
-    (map
-     (make-pollitem pollitems)
-     (iota n)
-     sockets
-     (map make-zmq-poll-event event-lists))))
-
-(define heartbeat-socket (make-zmq-socket context 'rep))
-(define shell-socket (make-zmq-socket context 'router))
-(define control-socket (make-zmq-socket context 'router))
-
-(define sockets (list heartbeat-socket shell-socket control-socket))
-(define events (make-list 3 '(pollin)))
-(define pollitems (make-pollitems 3 sockets events))
-
-(define heartbeat-pollitem (car pollitems))
-(define shell-pollitem (cadr pollitems))
-(define control-pollitem (caddr pollitems))
-
-(for-each zmq-socket-bind sockets endpoints)
-(define size (expt 2 10))
-
-(define (poll)
+(let poll ()
   (zmq-poll (car pollitems) (length pollitems) -1)
   (for-each
    (lambda (handler pollitem socket)
      (if (zmq-pollin? (zmq-pollitem-revents pollitem))
-	 (handler socket pollitem size)))
+	 (handler socket pollitem)))
    handlers
    pollitems
-   sockets))
-
-(let iter ()
-  (poll)
-  (iter))
+   sockets)
+  (poll))
 
 (pp "end of file")
