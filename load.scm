@@ -9,6 +9,9 @@
 (cd "/home/joel/.local/share/jupyter/kernels/ischeme")
 (load "utils")
 (load "kernel-info")
+(load "error")
+(load "stdio")
+(load "is-complete")
 (load "execute")
 
 (define delimiter "<IDS|MSG>")
@@ -45,7 +48,7 @@
 (define hb-endpoint (make-endpoint hb-port))
 (define iopub-endpoint (make-endpoint iopub-port))
 
-(define endpoints (list hb-endpoint shell-endpoint control-endpoint))
+(define endpoints (list hb-endpoint shell-endpoint control-endpoint stdin-endpoint))
 
 (define context (make-zmq-context))
 
@@ -55,11 +58,10 @@
 (define iopub-socket (make-zmq-socket context 'pub))
 (define stdin-socket (make-zmq-socket context 'router))
 
-(define sockets (list hb-socket shell-socket control-socket))
-(define pollitems (make-pollitems 3 sockets (make-list 3 '(pollin))))
+(define sockets (list hb-socket shell-socket control-socket stdin-socket))
+(define pollitems (make-pollitems 4 sockets (make-list 4 '(pollin))))
 
 (zmq-socket-bind iopub-socket iopub-endpoint)
-(zmq-socket-bind stdin-socket stdin-endpoint)
 (for-each zmq-socket-bind sockets endpoints)
 
 (define (reply socket uuid parent msg-type content)
@@ -89,9 +91,7 @@
 (define (inspect-request socket uuid json) #!unspecific)
 (define (complete-request socket uuid json) #!unspecific)
 (define (history-request socket uuid json) #!unspecific)
-(define (is-complete-request socket uuid json) #!unspecific)
 (define (comm-info-request socket uuid json) #!unspecific)
-(define (input-request socket uuid json) #!unspecific)
 
 (define (route-message msg-type)
   (cond ((string=? msg-type "execute_request") execute-request)
@@ -102,7 +102,7 @@
 	((string=? msg-type "comm_info_request") comm-info-request)
 	((string=? msg-type "kernel_info_request") kernel-info-request)
 	((string=? msg-type "shutdown_request") shutdown-request)
-	((string=? msg-type "input_request") input-request)))
+	((string=? msg-type "input_reply") input-reply)))
 
 (define get-header car)
 (define get-parent cadr)
@@ -148,11 +148,12 @@
 	((route-message msg-type) socket uuid json)))))
 
 (define control-handler shell-handler)
+(define stdin-handler shell-handler)
 
 (define (hb-handler socket pollitem)
   (zmq-send socket (zmq-receive socket hb-length)))
 
-(define handlers (list hb-handler shell-handler control-handler))
+(define handlers (list hb-handler shell-handler control-handler stdin-handler))
 
 (let poll ()
   (zmq-poll (car pollitems) (length pollitems) -1)

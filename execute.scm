@@ -1,4 +1,5 @@
-(define environments '())
+
+(define sessions '())
 (define none #!unspecific)
 
 (define (execute-request socket uuid json)
@@ -15,65 +16,58 @@
 	  expressions
 	  (iter (read code) (cons expression expressions))))))
 
-(define (new-environment)
-  (make-top-level-environment))
+(define session-env cadr)
+(define session-count caddr)
+(define session-stdio cadddr)
+(define (session-count! session)
+  (set-car! (cddr session) (+ 1 (caddr session))))
 
-(define (get-environment header)
-  (let ((session (cdr (assq 'session header))))
-    (or (asss session environments)
-	(let ((environment (list session (new-environment) 0)))
-	  (set! environments (cons environment environments))
-	  environment))))
+(define make-env make-top-level-environment)
 
-(define ((evaluate environment) expression pre)
-  (set-car! (cddr environment) (+ 1 (caddr environment)))
-  (eval expression (cadr environment)))
+(define (get-session uuid header)
+  (let ((s (cdr (assq 'session header))))
+    (or (asss s sessions)
+	(let ((session (list s (make-env) 0 (make-stdio uuid header))))
+	  (set! sessions (cons session sessions))
+	  session))))
 
-(define (error-hook condition)
-  (invoke-restart (find-restart 'jupyter-error)
-		  (condition-type/name (condition/type condition))
-		  (condition/report-string condition)))
+(define (evaluate session expressions)
+  (fold-right
+   (lambda (exp pre)
+     (session-count! session)
+     (eval exp (session-env session)))
+   none expressions))
 
-(define ((effector kappa uuid header) name report)
-  (let ((environment (get-environment header)))
-    (error-result uuid header (caddr environment) name report)
-    (kappa (list "error" (caddr environment) `(ename . ,name)
-					     `(evalue . ,report)
-					     `(traceback . #(,report))))))
-
-(define (execute uuid header content)
-  (call-with-current-continuation
-   (lambda (kappa)
-     (with-restart
-      'jupyter-error "report error to jupyter"
-      (effector kappa uuid header) #f
-      (lambda ()
-	(fluid-let ((standard-error-hook error-hook))
-	  (let ((expressions (get-expressions content))
-		(environment (get-environment header)))
-	    (let ((ret (fold-right (evaluate environment) none expressions)))
-	      (execute-result uuid header (caddr environment) ret)
-	      (list "ok" (caddr environment))))))))))
+;; execute return the content for an execute-reply
+;; which is either {status "ok"} or {status "error"}
+;; and maybe dispatches execute-result separately
+(define (execute socket uuid header content)
+  (let ((session (get-session uuid header)))
+    (call-with-current-continuation
+     (lambda (kappa)
+       (with-error
+	kappa session uuid header
+	(lambda ()
+	  (let ((expressions (get-expressions content)))
+	    (with-stdio
+	     (session-stdio session)
+	     (lambda ()
+	       (execute-result session uuid header
+			       (evaluate session expressions))
+	       `((status . "ok")
+		 (execution_count . ,(session-count session))
+		 (payload)
+		 (user_expressions))
+	       )
+	     )
+	    )))))))
 
 (define (execute-reply socket uuid header content)
-  (let ((result (execute uuid header content)))
-    (reply socket uuid header "execute_reply"
-	   `((status . ,(car result))
-	     (execution_count . ,(cadr result))
-	     (payload . ())
-	     (user_expressions . ())
-	     ,@(cddr result)))))
+  (reply socket uuid header "execute_reply"
+	 (execute socket uuid header content)))
 
-(define (execute-result uuid header id value)
-  (let ((content `((data . ((text/plain . ,(write-to-string value))))
-		   (metadata . ())
-		   (execution_count . ,id))))
-    (reply iopub-socket uuid header "execute_result" content)))
-
-(define (error-result uuid header id name report)
-  (let ((content `((ename . ,name)
-		   (evalue . ,report)
-		   (traceback . #(,report))
-		   (execution_count . ,id)
-		   (user_expressions . ()))))
-    (reply iopub-socket uuid header "error" content)))
+(define (execute-result session uuid header value)
+  (reply iopub-socket uuid header "execute_result"
+   `((data . ((text/plain . ,(write-to-string value))))
+     (metadata)
+     (execution_count . ,(session-count session)))))
