@@ -112,10 +112,13 @@
      (fluid-let ((standard-error-hook error-hook))
        (thunk)))))
 
+(define (colorize report)
+  (string-append "\033[31m" report "\033[0m"))
+
 (define (error-result session uuid header name report stack)
   (let ((content `((ename . ,name)
 		   (evalue . ,report)
-		   (traceback . #(,report))
+		   (traceback . #(,(colorize report)))
 ;		   (traceback . ,(vector-append stack (vector report)))
 		   (execution_count . ,(session-count session))
 		   (user_expressions))))
