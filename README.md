@@ -1,6 +1,9 @@
 # mit-scheme-kernel
 Jupyter Kernel for MIT Scheme
 
+![](demo.png)
+
+## Installation
 First get MIT Scheme 9.2+
 ```
 $ wget http://ftp.gnu.org/gnu/mit-scheme/stable.pkg/9.2/mit-scheme-9.2-x86-64.tar.gz
