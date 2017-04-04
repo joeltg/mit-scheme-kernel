@@ -67,7 +67,7 @@
 (define (shutdown-request socket uuid json)
   (let ((content (get-content json))
 	(header (get-header json)))
-    (write-string "exiting scheme")
+    (write-string "exiting scheme\n")
     (shutdown-reply socket uuid header content)
     (for-each zmq-socket-unbind sockets endpoints)
     (for-each zmq-socket-close sockets)
