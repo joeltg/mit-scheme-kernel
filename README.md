@@ -1,4 +1,4 @@
-# ischeme
+# mit-scheme-kernel
 Jupyter Kernel for MIT Scheme
 
 First get MIT Scheme 9.2+
