@@ -1,11 +1,11 @@
 all: build
 
-install: install-zmq install-ischeme
+install: install-zmq install-kernel
 
 install-zmq:
 	echo '(install-shim "$(DESTDIR)" "zmq")' | mit-scheme --batch-mode
 
-install-ischeme: make-directory copy-files
+install-kernel: make-directory copy-files
 
 make-directory:
 	mkdir -p /usr/local/share/jupyter/kernels/mit-scheme-kernel
