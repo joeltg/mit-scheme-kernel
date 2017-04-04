@@ -21,12 +21,12 @@ $ sudo make install
 ```
 And finally 
 ```
-$ git clone https://github.com/joeltg/ischeme
-$ cd ischeme
+$ git clone https://github.com/joeltg/mit-scheme-kernel
+$ cd mit-scheme-kernel
 $ export LD_LIBRARY_PATH=/usr/local/lib
 $ make
 $ sudo make install
-$ jupyter console --kernel ischeme
+$ jupyter console --kernel mit-scheme-kernel
 Jupyter console 5.1.0
 
 MIT Scheme Kernel
