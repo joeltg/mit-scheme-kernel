@@ -1,0 +1,5 @@
+{
+    "argv": ["mit-scheme", "--large", "--silent", "--load", "/usr/local/share/jupyter/kernels/ischeme/load.scm", "--", "{connection_file}"],
+    "display_name": "MIT Scheme",
+    "language": "scheme"
+}

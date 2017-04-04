@@ -1,0 +1,91 @@
+(typedef size_t uint)
+
+;; 0MQ errors.
+
+(extern int
+  zmq_errno)
+
+(extern (* (const char))
+  zmq_strerror
+  (errnum int))
+
+;; 0MQ infrastructure (a.k.a. context) initialisation & termination.
+
+(extern (* void)
+  zmq_ctx_new)
+
+(extern int
+  zmq_ctx_term
+  (context (* void)))
+
+(extern int
+  zmq_ctx_shutdown
+  (context (* void)))
+
+;; 0MQ socket events and monitoring
+
+(extern (* void)
+  zmq_socket
+  (ctx (* void))
+  (type int))
+
+(extern int
+  zmq_close
+  (s (* void)))
+
+(extern int
+  zmq_bind
+  (s (* void))
+  (addr (* (const char))))
+
+(extern int
+  zmq_connect
+  (s (* void))
+  (addr (* (const char))))
+
+(extern int
+  zmq_unbind
+  (s (* void))
+  (addr (* (const char))))
+
+(extern int
+  zmq_disconnect
+  (s (* void))
+  (addr (* (const char))))
+
+(extern int
+  zmq_send
+  (s (* void))
+  (buf (* void))
+  (len size_t)
+  (flags int))
+
+(extern int
+  zmq_recv
+  (s (* void))
+  (buf (* void))
+  (len size_t)
+  (flags int))
+
+(extern int
+  zmq_socket_monitor
+  (s (* void))
+  (addr (* char))
+  (events int))
+
+
+;; I/O Multiplexing.
+
+(typedef zmq_pollitem_t
+  (struct zmq_pollitem_t
+    (socket (* void))
+    (fd int)
+    (events short)
+    (revents short)))
+
+(extern int
+  zmq_poll
+  (items (* zmq_pollitem_t))
+  (nitems int)
+  (timeout long))
+

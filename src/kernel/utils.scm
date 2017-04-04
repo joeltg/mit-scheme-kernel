@@ -8,7 +8,8 @@
 
 (define (pad n l)
   (let ((s (number->string n)))
-    (string-append (make-string (- l (string-length s)) #\0) s)))
+    (string-append
+     (make-string (- l (string-length s)) #\0) s)))
 
 (define (make-date)
   (let ((time (global-decoded-time)))
@@ -44,20 +45,3 @@
 		   (- (string-length hmac) 64 1)
 		   (- (string-length hmac) 1)))))
    (else (warn "signature scheme not recognized") "")))
-
-(define (get-pollitem alien i)
-  (alien-byte-increment alien (* i zmq-poll-size) 'zmq_pollitem_t))
-
-(define ((make-pollitem pollitems) i socket events)
-  (let ((pollitem (get-pollitem pollitems i)))
-    (c->= pollitem "zmq_pollitem_t socket" socket)
-    (c->= pollitem "zmq_pollitem_t events" events)
-    pollitem))
-
-(define (make-pollitems n sockets event-lists)
-  (let ((pollitems (malloc (* n zmq-poll-size) 'zmq_pollitem_t)))
-    (map
-     (make-pollitem pollitems)
-     (iota n)
-     sockets
-     (map make-zmq-poll-event event-lists))))

@@ -1,31 +1,17 @@
-
-
-(cd "/home/joel/Documents/json.scm")
-(load "json")
-
-(cd "/home/joel/Documents/zmq.scm")
-(load "zmq")
-
-(cd "/home/joel/.local/share/jupyter/kernels/ischeme")
-(load "utils")
-(load "kernel-info")
-(load "error")
-(load "stdio")
-(load "is-complete")
-(load "execute")
-
 (define delimiter "<IDS|MSG>")
 
 (define args (command-line))
 (assert (> (length args) 0))
+
 (define file (open-input-file (car args)))
 (define text (read-string (char-set) file))
 (define json (json-decode text))
 
-(define dict (vector-ref json 0))
+(assert (and (vector? json)
+	     (= 1 (vector-length json))))
 
 (define (ref key)
-  (cdr (assq key dict)))
+  (cdr (assq key (vector-ref json 0))))
 (define control-port     (ref 'control_port))
 (define shell-port       (ref 'shell_port))
 (define transport        (ref 'transport))
@@ -36,27 +22,24 @@
 (define iopub-port       (ref 'iopub_port))
 (define key              (ref 'key))
 
-(pp "loaded config")
-(pp dict)
-
 (define (make-endpoint port)
   (string-append transport "://" ip ":" (number->string port)))
 
 (define control-endpoint (make-endpoint control-port))
-(define shell-endpoint (make-endpoint shell-port))
-(define stdin-endpoint (make-endpoint stdin-port))
-(define hb-endpoint (make-endpoint hb-port))
-(define iopub-endpoint (make-endpoint iopub-port))
+(define shell-endpoint   (make-endpoint shell-port))
+(define stdin-endpoint   (make-endpoint stdin-port))
+(define hb-endpoint      (make-endpoint hb-port))
+(define iopub-endpoint   (make-endpoint iopub-port))
 
 (define endpoints (list hb-endpoint shell-endpoint control-endpoint stdin-endpoint))
 
 (define context (make-zmq-context))
 
-(define hb-socket (make-zmq-socket context 'rep))
-(define shell-socket (make-zmq-socket context 'router))
+(define hb-socket      (make-zmq-socket context 'rep))
+(define shell-socket   (make-zmq-socket context 'router))
 (define control-socket (make-zmq-socket context 'router))
-(define iopub-socket (make-zmq-socket context 'pub))
-(define stdin-socket (make-zmq-socket context 'router))
+(define iopub-socket   (make-zmq-socket context 'pub))
+(define stdin-socket   (make-zmq-socket context 'router))
 
 (define sockets (list hb-socket shell-socket control-socket stdin-socket))
 (define pollitems (make-pollitems 4 sockets (make-list 4 '(pollin))))
@@ -86,23 +69,36 @@
 	(header (get-header json)))
     (pp "exiting scheme")
     (shutdown-reply socket uuid header content)
+    (for-each zmq-socket-unbind sockets endpoints)
+    (for-each zmq-socket-close sockets)
+    (zmq-socket-unbind iopub-socket iopub-endpoint)
+    (zmq-socket-close iopub-socket)
+    (zmq-context-terminate context)
     (%exit)))
 
-(define (inspect-request socket uuid json) #!unspecific)
-(define (complete-request socket uuid json) #!unspecific)
-(define (history-request socket uuid json) #!unspecific)
+(define (inspect-request   socket uuid json) #!unspecific)
+(define (complete-request  socket uuid json) #!unspecific)
+(define (history-request   socket uuid json) #!unspecific)
 (define (comm-info-request socket uuid json) #!unspecific)
 
+(define routes
+  `(("execute_request" . ,execute-request)
+    ("inspect-request" . ,inspect-request)
+    ("complete_request" . ,complete-request)
+    ("history_request" . ,history-request)
+    ("is_complete_request" . ,is-complete-request)
+    ("comm_info_request" . ,comm-info-request)
+    ("kernel_info_request" . ,kernel-info-request)
+    ("shutdown_request" . ,shutdown-request)
+    ("input_reply" . ,input-reply)))
+
+(define asss (association-procedure string=? car))
+
 (define (route-message msg-type)
-  (cond ((string=? msg-type "execute_request") execute-request)
-	((string=? msg-type "inspect-request") inspect-request)
-	((string=? msg-type "complete_request") complete-request)
-	((string=? msg-type "history_request") history-request)
-	((string=? msg-type "is_complete_request") is-complete-request)
-	((string=? msg-type "comm_info_request") comm-info-request)
-	((string=? msg-type "kernel_info_request") kernel-info-request)
-	((string=? msg-type "shutdown_request") shutdown-request)
-	((string=? msg-type "input_reply") input-reply)))
+  (let ((route (asss msg-type routes)))
+    (if route
+	(cdr route)
+	(error "invalid message type"))))
 
 (define get-header car)
 (define get-parent cadr)
@@ -155,7 +151,7 @@
 
 (define handlers (list hb-handler shell-handler control-handler stdin-handler))
 
-(let poll ()
+(define (poll)
   (zmq-poll (car pollitems) (length pollitems) -1)
   (for-each
    (lambda (handler pollitem socket)
@@ -166,4 +162,3 @@
    sockets)
   (poll))
 
-(pp "end of file")
