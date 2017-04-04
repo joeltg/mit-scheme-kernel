@@ -1,6 +1,6 @@
 (define kernel-info
   '((protocol_version . "5.1.0")
-    (implementation . "ischeme")
+    (implementation . "mit-scheme-kernel")
     (implementation_version . "0.0.2")
     (language_info . ((name . "MIT Scheme")
 		      (version . "9.2.1")
@@ -10,7 +10,7 @@
 		      (codemirror_mode . "scheme")))
     (banner . "MIT Scheme Kernel")
     (help_links . #(((text . "GitHub")
-		     (url . "https://github.com/joeltg/ischeme"))))))
+		     (url . "https://github.com/joeltg/mit-scheme-kernel"))))))
 
 
 (define (kernel-info-request socket uuid json)
