@@ -8,10 +8,10 @@ install-zmq:
 install-ischeme: make-directory copy-files
 
 make-directory:
-	mkdir -p /usr/local/share/jupyter/kernels/ischeme
+	mkdir -p /usr/local/share/jupyter/kernels/mit-scheme-kernel
 
 copy-files:
-	cp -r src/* /usr/local/share/jupyter/kernels/ischeme/.
+	cp -r src/* /usr/local/share/jupyter/kernels/mit-scheme-kernel/.
 
 clean:
 	rm zmq-const* zmq-types* zmq-shim*
