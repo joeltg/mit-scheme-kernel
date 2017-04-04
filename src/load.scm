@@ -1,4 +1,4 @@
-(cd "/usr/local/share/jupyter/kernels/ischeme")
+(cd "/usr/local/share/jupyter/kernels/mit-scheme")
 
 (load "json/json-encode")
 (load "json/json-decode")
