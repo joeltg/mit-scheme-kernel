@@ -29,7 +29,7 @@ $ cd mit-scheme-kernel
 $ export LD_LIBRARY_PATH=/usr/local/lib
 $ make
 $ sudo make install
-$ jupyter console --kernel mit-scheme-kernel
+$ jupyter console --kernel mit-scheme
 Jupyter console 5.1.0
 
 MIT Scheme Kernel
