@@ -4,6 +4,15 @@ Jupyter Kernel for MIT Scheme
 ![](demo.png)
 
 ## Installation
+
+### Docker
+```
+docker run -it kkwok/jupyter-mit-scheme
+```
+
+### Source
+For Debian / Ubuntu. It's probably possible to make it work on macOS but I haven't tried.
+
 First get MIT Scheme 9.2+
 ```
 $ wget http://ftp.gnu.org/gnu/mit-scheme/stable.pkg/9.2/mit-scheme-9.2-x86-64.tar.gz
