@@ -1,0 +1,9 @@
+zmq-const
+zmq-const.bin
+zmq-const.c
+zmq-const.o
+zmq-const.scm
+zmq-shim.c
+zmq-shim.o
+zmq-shim.so
+zmq-types.bin

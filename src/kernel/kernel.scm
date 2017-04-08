@@ -80,6 +80,9 @@
 (define (complete-request  socket uuid json) #!unspecific)
 (define (history-request   socket uuid json) #!unspecific)
 (define (comm-info-request socket uuid json) #!unspecific)
+(define (comm-open socket uuid json)
+  (pp (list "comm_open" json))
+  #!unspecific)
 
 (define routes
   `(("execute_request" . ,execute-request)
@@ -88,6 +91,7 @@
     ("history_request" . ,history-request)
     ("is_complete_request" . ,is-complete-request)
     ("comm_info_request" . ,comm-info-request)
+    ("comm_open" . ,comm-open)
     ("kernel_info_request" . ,kernel-info-request)
     ("shutdown_request" . ,shutdown-request)
     ("input_reply" . ,input-reply)))
