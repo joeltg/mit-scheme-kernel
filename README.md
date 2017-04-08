@@ -1,6 +1,18 @@
 # mit-scheme-kernel
 Jupyter Kernel for MIT Scheme
 
+![](demo.png)
+
+## Installation
+
+### Docker
+[Kevin Kwok](https://github.com/antimatter15) published a [docker image](https://github.com/antimatter15/jupyter-mit-scheme) that does all the things:
+```
+docker run -it --rm -p 8888:8888 kkwok/jupyter-mit-scheme
+```
+
+### Source
+
 First get MIT Scheme 9.2+
 ```
 $ wget http://ftp.gnu.org/gnu/mit-scheme/stable.pkg/9.2/mit-scheme-9.2-x86-64.tar.gz
@@ -26,7 +38,7 @@ $ cd mit-scheme-kernel
 $ export LD_LIBRARY_PATH=/usr/local/lib
 $ make
 $ sudo make install
-$ jupyter console --kernel mit-scheme-kernel
+$ jupyter console --kernel mit-scheme
 Jupyter console 5.1.0
 
 MIT Scheme Kernel
