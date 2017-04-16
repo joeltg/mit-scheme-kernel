@@ -1,0 +1,55 @@
+(define comm-version "~2.1.4")
+(define comm-module "jupyter-js-widgets")
+(define comm-target "jupyter.widget")
+(define (make-comm-model id)
+  (string-append "IPY_MODEL_" id))
+
+(define (make-comm id target)
+  (list id target))
+
+(define comm/id car)
+(define comm/target cadr)
+
+(define (comm-info-request session content reply pub . env)
+  (pub "comm_info_reply" '((status . "ok") (comms))))
+
+(define (comm-open-version session pub id data)
+  (let ((comm (make-comm id "jupyter.widget.version")))
+    (session/add-comm! session comm)
+    (pub "comm_msg"
+	 `((comm_id . ,id)
+	   (data . ((version . ,comm-version)))))))
+
+(define (comm-open-widget session pub id data)
+  (let ((comm (make-comm id "jupyter.widget")))
+    (session/add-comm! session comm)
+    (let ((widget-class (cdr (assq 'widget_class data))))
+      (print "widget class" widget-class))))
+
+(define (comm-open session content reply pub . env)
+  (let ((comm-id (cdr (assq 'comm_id content)))
+	(data (cdr (assq 'data content)))
+	(target-name (cdr (assq 'target_name content))))
+    (cond ((string=? "jupyter.widget.version" target-name)
+	   (comm-open-version session pub comm-id data))
+	  ((string=? "jupyter.widget" target-name)
+	   (comm-open-widget session pub comm-id data))
+	  (else (warn "invalid widget target")))))
+
+(define (comm-msg-version session pub id data)
+  (if (cdr (assq 'validated data))
+      (print "widget comms validated")
+      (warn "invalid jupter widget version")))
+
+(define (comm-msg-widget session pub id data)
+  #!unspecific)
+
+(define (comm-msg session content reply pub . env)
+  (print "comm message" content)
+  (let ((id (cdr (assq 'comm_id content)))
+	(data (cdr (assq 'data content))))
+    (let ((target (comm/target (asss id (session/comms session)))))
+      (cond ((string=? "jupyter.widget.version" target)
+	     (comm-msg-version session pub id data))
+	    ((string=? "jupyter.widget" target)
+	     (comm-msg-widget session pub id data))))))

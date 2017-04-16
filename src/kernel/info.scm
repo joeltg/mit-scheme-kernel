@@ -13,12 +13,11 @@
 		     (url . "https://github.com/joeltg/mit-scheme-kernel"))))))
 
 
-(define (kernel-info-request socket uuid json)
-  (let ((header (get-header json)))
-    (pub uuid header "busy")
-    (kernel-info-reply socket uuid header)
-    (pub uuid header "idle")))
+(define (kernel-info-request session content reply pub . env)
+  (pub "status" '((execution_state . "busy")))
+  (kernel-info-reply reply)
+  (pub "status" '((execution_state . "idle"))))
 
-(define (kernel-info-reply socket uuid header)
-   (reply socket uuid header "kernel_info_reply" kernel-info))
+(define (kernel-info-reply reply)
+  (reply "kernel_info_reply" kernel-info))
 

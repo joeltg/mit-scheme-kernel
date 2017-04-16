@@ -15,12 +15,10 @@
 (define ((complete-effector kappa) status)
   (kappa status))
 
-(define (is-complete-request socket uuid json)
-  (let ((header (get-header json))
-	(content (get-content json)))
-    (pub uuid header "busy")
-    (is-complete-reply socket uuid header content)
-    (pub uuid header "idle")))
+(define (is-complete-request session content reply pub . env)
+  (pub "status" '((execution_state . "busy")))
+  (is-complete-reply content reply)
+  (pub "status" '((execution_state . "idle"))))
 
 (define (completion content)
   (call-with-current-continuation
@@ -37,6 +35,6 @@
 		    `((status . "complete"))
 		    (iter (read code))))))))))))
 
-(define (is-complete-reply socket uuid header content)
-  (reply socket uuid header "is_complete_reply" (completion content)))
+(define (is-complete-reply content reply)
+  (reply "is_complete_reply" (completion content)))
 
