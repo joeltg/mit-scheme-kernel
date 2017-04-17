@@ -8,7 +8,7 @@
   (comm)
   (model)
   (view)
-  (state))
+  (state '()))
 
 (define (make-widget-model widget)
   (string-append "IPY_MODEL_" (comm-id (widget-comm widget))))
@@ -28,12 +28,13 @@
       (_model_name . ,model))))
 
 (define (make-widget model view #!optional state)
-  (let ((data (make-widget-data model view state)))
-    (let ((comm (open-comm session comm-widget-target data)))
-      (let ((widget (initialize-widget (comm-id comm) comm model view state)))
-        (session-add-comm! session comm)
-        (session-add-widget! session widget)
-        widget))))
+  (let ((state (if (default-object? state) '() state)))
+    (let ((data (make-widget-data model view state)))
+      (let ((comm (open-comm session comm-widget-target data)))
+        (let ((widget (initialize-widget (comm-id comm) comm model view state)))
+          (session-add-comm! session comm)
+          (session-add-widget! session widget)
+          widget)))))
 
 (define (display-widget widget)
   (let ((comm (widget-comm widget)))
@@ -50,8 +51,7 @@
   (fold-right
     cons
     new
-    (filter (lambda (e) (not (assq (car e) new)))
-    old)))
+    (filter (lambda (e) (not (assq (car e) new))) old)))
 
 (define (update-widget widget state)
   (let ((comm (widget-comm widget)))

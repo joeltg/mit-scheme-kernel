@@ -68,6 +68,7 @@
 
 (define (comm-msg session content reply pub . env)
   (print "comm message" content)
+  (pub "status" '((execution_state . "busy")))
   (let ((id (cdr (assq 'comm_id content)))
 	      (data (cdr (assq 'data content))))
     (let ((target (comm-target (comm-ref id (session-comms session)))))
@@ -75,4 +76,5 @@
         ((string=? comm-version-target target)
 	        (comm-msg-version session pub id data))
 	      ((string=? comm-widget-target target)
-	        (comm-msg-widget session pub id data))))))
+	        (comm-msg-widget session pub id data)))))
+  (pub "status" '((execution_state . "idle"))))
