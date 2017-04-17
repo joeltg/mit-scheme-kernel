@@ -49,9 +49,9 @@
 
 (define (router msg-type)
   (let ((route (asss msg-type routes)))
-    (if route
-	(cdr route)
-	(error "invalid message type"))))
+    (if route 
+      (cdr route)
+	    (error "invalid message type"))))
 
 (define ((make-reply socket uuid parent) msg-type content)
   (send socket uuid parent msg-type content))

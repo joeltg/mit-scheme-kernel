@@ -45,3 +45,19 @@
 	        (application/vnd.jupyter.widget-view+json
 	          (model_id . ,(comm-id comm))))
 	      (metadata)))))
+
+(define (merge-states old new)
+  (fold-right
+    cons
+    new
+    (filter (lambda (e) (not (assq (car e) new)))
+    old)))
+
+(define (update-widget widget state)
+  (let ((comm (widget-comm widget)))
+    (send-comm-msg comm `((method . "update") (state . ,state)))
+    (set-widget-state! widget (merge-states (widget-state widget) state))))
+
+(define ((widget-updater property predicate) widget value)
+  (assert (predicate value))
+  (update-widget widget (list (cons property value))))
