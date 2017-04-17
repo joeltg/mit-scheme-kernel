@@ -7,7 +7,9 @@
 
   (define (number->json number)
     (if (integer? number)
-	(json-atom (string->list (number->string number)))
+      (if (exact? number)
+        (json-atom (string->list (number->string number)))
+        (json-atom (string->list (string-append (number->string number) "0"))))
 	(let ((r (abs number))
 	      (s (< 0 number)))
 	  (let ((l (string->list (number->string (exact->inexact r)))))
