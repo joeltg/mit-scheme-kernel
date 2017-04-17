@@ -2,13 +2,17 @@
 (define comm-widget-target "jupyter.widget")
 (define comm-module "jupyter-js-widgets")
 
+(define (default-handler state)
+  #!unspecific)
+
 (define-structure
   (widget (constructor initialize-widget (id comm model view state)))
   (id)
   (comm)
   (model)
   (view)
-  (state '()))
+  (state '())
+  (handler default-handler))
 
 (define (make-widget-model widget)
   (string-append "IPY_MODEL_" (comm-id (widget-comm widget))))

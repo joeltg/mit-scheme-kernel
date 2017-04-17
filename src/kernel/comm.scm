@@ -2,6 +2,25 @@
 (define comm-widget-target "jupyter.widget")
 (define comm-version-target "jupyter.widget.version")
 
+(define widget-ref 
+  (association-procedure 
+    string=? 
+    (lambda (widget)
+      ((record-accessor (record-type-descriptor widget) 'id) widget))))
+
+(define (merge-states old new)
+  (fold-right
+    cons
+    new
+    (filter (lambda (e) (not (assq (car e) new))) old)))
+
+(define (widget-handler widget state)
+  (let ((type (record-type-descriptor widget)))
+    ((record-modifier type 'state)
+      widget
+      (merge-states ((record-accessor type 'state) widget) state))
+    (((record-accessor type 'handler) widget) state)))
+
 (define-structure
   (comm (constructor initialize-comm (session target #!optional id)))
   (session)
@@ -64,10 +83,13 @@
       (warn "invalid jupter widget version")))
 
 (define (comm-msg-widget session pub id data)
-  #!unspecific)
+  (let ((widget (widget-ref id (session-widgets session))))
+    (cond 
+      ((string=? "backbone" (cdr (assq 'method data)))
+        (widget-handler widget (cdr (assq 'sync_data data))))
+      (else #!unspecific))))
 
 (define (comm-msg session content reply pub . env)
-  (print "comm message" content)
   (pub "status" '((execution_state . "busy")))
   (let ((id (cdr (assq 'comm_id content)))
 	      (data (cdr (assq 'data content))))
