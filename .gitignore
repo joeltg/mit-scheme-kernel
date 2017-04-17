@@ -7,3 +7,4 @@ zmq-shim.c
 zmq-shim.o
 zmq-shim.so
 zmq-types.bin
+refresh

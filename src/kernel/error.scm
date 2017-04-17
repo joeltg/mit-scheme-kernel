@@ -11,7 +11,7 @@
   (let ((content `((ename . ,name)
 		   (evalue . ,report)
 		   (traceback . #(,(colorize report)))
-		   (execution_count . ,(session/count session))
+		   (execution_count . ,(session-count session))
 		   (user_expressions))))
     (pub "error" content)))
 

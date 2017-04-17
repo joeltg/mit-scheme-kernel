@@ -53,28 +53,27 @@
 	(cdr route)
 	(error "invalid message type"))))
 
-(define ((reply socket uuid parent) msg-type content)
+(define ((make-reply socket uuid parent) msg-type content)
   (send socket uuid parent msg-type content))
 
-(define ((pub iopub-socket uuid parent) msg-type content)
+(define ((make-pub iopub-socket uuid parent) msg-type content)
   (send iopub-socket uuid parent msg-type content))
 
 (define ((make-handler iopub-socket get-session) socket env)
   (let ((blobs (reverse (fold-left (shell-fold socket) '() lengths))))
     (let ((uuid (car blobs))
-	  (deli (cadr blobs))
-	  (hmac (caddr blobs))
-	  (json (map vector-ref-0 (map json-decode (cdddr blobs)))))
+	        (deli (cadr blobs))
+	        (hmac (caddr blobs))
+	        (json (map vector-ref-0 (map json-decode (cdddr blobs)))))
       (assert (string=? deli delimiter))
       (let ((content (get-content json))
-	    (header (get-header json)))
-	(apply
-	 (router (cdr (assq 'msg_type header)))
-	 (get-session uuid header)
-	 content
-	 (reply socket uuid header)
-	 (pub iopub-socket uuid header)
-	 env)))))
+	          (header (get-header json)))
+        (let ((session (get-session uuid header))
+              (reply (make-reply socket uuid header))
+              (pub (make-pub iopub-socket uuid header)))
+          (set-session-pub! session pub)
+          (apply (router (cdr (assq 'msg_type header)))
+            session content reply pub env))))))
 
 (define (listen
 	 transport
@@ -119,12 +118,11 @@
   (define sessions '())
 
   (define (get-session uuid header)
-     (let ((session (cdr (assq 'session header))))
-      (or (asss session sessions)
-	  (let ((s (make-session session
-				 (pub iopub-socket uuid header))))
-	    (set! sessions (cons s sessions))
-	    s))))
+    (let ((session (cdr (assq 'session header))))
+      (or (session-ref session sessions)
+	        (let ((s (make-session uuid)))
+	          (set! sessions (cons s sessions))
+	          s))))
 
   (define shell-handler (make-handler iopub-socket get-session))
   (define control-handler shell-handler)

@@ -1,16 +1,16 @@
 
 (define (with-stdio session reply pub thunk)
-  (with-output-to-port (session/stdio session) thunk))
+  (with-output-to-port (session-stdio session) thunk))
 
 (define (stdio-write-char port char)
-  ((port/state port)
+  ((session-pub (port/state port))
    "stream"
    `((name . "stdout")
      (text . ,(char->string char))))
   0)
 
 (define (stdio-write-substring port string start end)
-  ((port/state port)
+  ((session-pub (port/state port))
    "stream"
    `((name . "stdout")
      (text . ,(substring string start end))))
@@ -22,6 +22,5 @@
      (write-char ,stdio-write-char))
    #f))
 
-(define (make-stdio pub)
-  (make-port stdio-port-type pub))
-
+(define (make-stdio session)
+  (make-port stdio-port-type session))
