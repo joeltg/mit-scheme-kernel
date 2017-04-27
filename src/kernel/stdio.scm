@@ -1,5 +1,5 @@
 
-(define (with-stdio session reply pub thunk)
+(define (with-stdio session thunk)
   (with-output-to-port (session-stdio session) thunk))
 
 (define (stdio-write-char port char)

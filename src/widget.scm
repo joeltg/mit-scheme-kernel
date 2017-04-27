@@ -2,8 +2,10 @@
 (define comm-widget-target "jupyter.widget")
 (define comm-module "jupyter-js-widgets")
 
-(define (default-handler state)
-  #!unspecific)
+(define widget-links '())
+
+;; (define (default-handler state)
+;;   #!unspecific)
 
 (define-structure
   (widget (constructor initialize-widget (id comm model view state)))
@@ -11,8 +13,9 @@
   (comm)
   (model)
   (view)
+;;   (handler default-handler)
   (state '())
-  (handler default-handler))
+  (handlers '()))
 
 (define (make-widget-model widget)
   (string-append "IPY_MODEL_" (comm-id (widget-comm widget))))
@@ -57,11 +60,68 @@
     new
     (filter (lambda (e) (not (assq (car e) new))) old)))
 
-(define (update-widget widget state)
+(define (update-widget! widget state)
   (let ((comm (widget-comm widget)))
     (send-comm-msg comm `((method . "update") (state . ,state)))
     (set-widget-state! widget (merge-states (widget-state widget) state))))
 
-(define ((widget-updater property predicate) widget value)
-  (assert (predicate value))
-  (update-widget widget (list (cons property value))))
+(define ((widget-updater property #!optional predicate) widget value)
+  (assert (or (default-object? predicate) (predicate value)))
+  (update-widget! widget (list (cons property value))))
+
+
+(define make-handler cons)
+(define handler-name car)
+(define handler-effector cdr)
+(define (handler? handler)
+  (and
+    (pair? handler)
+    (symbol? (handler-name handler))
+    (procedure? (handler-effector handler))
+    (= 1 (procedure-arity-min (procedure-arity (cdr handler))))))
+
+(define (add-widget-handler! widget handler)
+  (assert (handler? handler))
+  (set-widget-handlers!
+    widget
+    (cons handler (widget-handlers widget))))
+
+(define (clear-widget-handlers! widget)
+  (set-widget-handlers! widget '()))
+
+(define set-widget-value! (widget-updater 'value))
+(define (widget-value widget)
+  (cdr (assq 'value (widget-state widget))))
+
+(define (link widget symbol)
+  (assert (symbol? symbol))
+  (if (environment-bound? *the-environment* symbol)
+    (set-widget-value! widget (environment-lookup *the-environment* symbol))
+    (environment-define *the-environment* symbol (widget-value widget)))
+  (let ((l (assq symbol widget-links)))
+    (if l
+      (set-cdr! l (cons widget (cdr l)))
+      (set! widget-links (cons (list symbol widget) widget-links))))
+  (add-widget-handler!
+    widget
+    (make-handler
+      symbol
+      (lambda (state)
+        (let ((value (cdr (assq 'value state))))
+          (for-each 
+            (lambda (w) 
+              (if (not (eq? w widget)) 
+                (set-widget-value! w value)))
+            (cdr (assq symbol widget-links)))
+          (environment-assign! *the-environment* symbol value))))))
+
+(define (clear-all-links!)
+  (set! widget-links '()))
+
+(define (clear-links! symbol)
+  (let ((l (assq symbol widget-links)))
+    (if l
+      (for-each
+        (lambda (w) 
+          (del-assq! symbol (widget-handlers w)))
+        (cdr l)))))
