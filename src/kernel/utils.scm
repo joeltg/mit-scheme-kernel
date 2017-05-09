@@ -13,9 +13,6 @@
       (vector-ref vector 0)
       (error "could not parse json")))
 
-(define (make-msg-id)
-  (number->string (random (expt 2 128)) 16))
-
 (define (pad n l)
   (let ((s (number->string n)))
     (string-append

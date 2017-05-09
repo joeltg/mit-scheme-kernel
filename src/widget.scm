@@ -1,26 +1,11 @@
 (define comm-version "~2.1.4")
-(define comm-widget-target "jupyter.widget")
+(define comm-widget-name "jupyter.widget")
 (define comm-module "jupyter-js-widgets")
 
 (define widget-links '())
 
-;; (define (default-handler state)
-;;   #!unspecific)
-
-(define-structure
-  (widget (constructor initialize-widget (id comm model view state)))
-  (id)
-  (comm)
-  (model)
-  (view)
-;;   (handler default-handler)
-  (state '())
-  (handlers '()))
-
 (define (make-widget-model widget)
   (string-append "IPY_MODEL_" (comm-id (widget-comm widget))))
-
-(define widget-ref (association-procedure string=? widget-id))
 
 (define (make-widget-data model view #!optional state)
   (fold-right
@@ -29,6 +14,7 @@
     `((_view_module . ,comm-module)
       (_view_name . ,view)
       (msg_throttle . 1)
+      (_dom_classes . #())
       (_model_module . ,comm-module)
       (_model_module_version . ,comm-version)
       (_view_module_version . ,comm-version)
@@ -37,7 +23,7 @@
 (define (make-widget model view #!optional state)
   (let ((state (if (default-object? state) '() state)))
     (let ((data (make-widget-data model view state)))
-      (let ((comm (open-comm session comm-widget-target data)))
+      (let ((comm (open-comm session comm-widget-name data)))
         (let ((widget (initialize-widget (comm-id comm) comm model view state)))
           (session-add-comm! session comm)
           (session-add-widget! session widget)
@@ -54,12 +40,6 @@
 	          (model_id . ,(comm-id comm))))
 	      (metadata)))))
 
-(define (merge-states old new)
-  (fold-right
-    cons
-    new
-    (filter (lambda (e) (not (assq (car e) new))) old)))
-
 (define (update-widget! widget state)
   (let ((comm (widget-comm widget)))
     (send-comm-msg comm `((method . "update") (state . ,state)))
@@ -68,6 +48,16 @@
 (define ((widget-updater property #!optional predicate) widget value)
   (assert (or (default-object? predicate) (predicate value)))
   (update-widget! widget (list (cons property value))))
+
+(define set-widget-value! (widget-updater 'value))
+
+
+
+
+
+
+
+
 
 
 (define make-handler cons)
@@ -122,6 +112,6 @@
   (let ((l (assq symbol widget-links)))
     (if l
       (for-each
-        (lambda (w) 
+        (lambda (w)
           (del-assq! symbol (widget-handlers w)))
         (cdr l)))))

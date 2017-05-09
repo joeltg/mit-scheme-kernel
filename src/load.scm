@@ -4,6 +4,14 @@
 (load "json/json-decode")
 (load "zmq/zmq")
 
+(define shared-env (make-top-level-environment))
+(load "shared" shared-env)
+(define env (the-environment))
+(for-each
+  (lambda (binding) (apply environment-define env binding))
+  (environment-bindings shared-env))
+(environment-define shared-env 'shared-env shared-env)
+
 (load "kernel/utils")
 (load "kernel/info")
 (load "kernel/error")
@@ -12,7 +20,11 @@
 (load "kernel/session")
 (load "kernel/complete")
 (load "kernel/execute")
-(load "kernel/comm")
+(load "kernel/comm/comm")
+(load "kernel/comm/version")
+(load "kernel/comm/widget/widget")
+(load "kernel/comm/widget/backbone")
+(load "kernel/comm/widget/custom")
 (load "kernel/kernel")
 
 (define args (command-line))

@@ -8,7 +8,6 @@
     (disabled . #f)
     (style . ,(make-widget-model style))
     (layout . ,(make-widget-model layout))
-    (_dom_classes . #())
     (continuous_update . #t)))
 
 (define (make-progress)
