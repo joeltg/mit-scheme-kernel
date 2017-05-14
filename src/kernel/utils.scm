@@ -1,8 +1,5 @@
 (define version "5.1.0")
 
-(define (print . args)
-  (for-each (lambda (arg) (pp arg console-i/o-port)) args))
-
 (define asss (association-procedure string=? car))
 
 (define ((8b-ref string) k)

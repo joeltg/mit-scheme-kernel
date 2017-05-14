@@ -10,12 +10,12 @@
       (if (exact? number)
         (json-atom (string->list (number->string number)))
         (json-atom (string->list (string-append (number->string number) "0"))))
-	(let ((r (abs number))
-	      (s (< 0 number)))
-	  (let ((l (string->list (number->string (exact->inexact r)))))
-	    (let ((l (if (< 1 r) (cons #\0 l) l)))
-	      (let ((l (if s (cons #\- l) l)))
-		(cons l (last-pair l))))))))
+      (let ((r (abs number))
+            (s (< 0 number)))
+        (let ((l (string->list (number->string (exact->inexact r)))))
+          (let ((l (if (< r 1) (cons #\0 l) l)))
+            (let ((l (if s l (cons #\- l))))
+              (cons l (last-pair l))))))))
 
   (define (escape-char char str)
     (cond

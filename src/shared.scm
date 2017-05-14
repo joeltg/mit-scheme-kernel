@@ -8,6 +8,9 @@
       (>= n (procedure-arity-min arity))
       (<= n (procedure-arity-max arity)))))
 
+(define (print . args)
+  (for-each (lambda (arg) (pp arg console-i/o-port)) args))
+
 ;; Session
 (define (default-pub . args)
   (apply print "default pub!" args))

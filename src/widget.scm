@@ -51,67 +51,106 @@
 
 (define set-widget-value! (widget-updater 'value))
 
-
-
-
-
-
-
-
-
-
-(define make-handler cons)
-(define handler-name car)
-(define handler-effector cdr)
-(define (handler? handler)
-  (and
-    (pair? handler)
-    (symbol? (handler-name handler))
-    (procedure? (handler-effector handler))
-    (= 1 (procedure-arity-min (procedure-arity (cdr handler))))))
-
-(define (add-widget-handler! widget handler)
-  (assert (handler? handler))
-  (set-widget-handlers!
-    widget
-    (cons handler (widget-handlers widget))))
-
-(define (clear-widget-handlers! widget)
-  (set-widget-handlers! widget '()))
-
-(define set-widget-value! (widget-updater 'value))
 (define (widget-value widget)
   (cdr (assq 'value (widget-state widget))))
 
-(define (link widget symbol)
-  (assert (symbol? symbol))
-  (if (environment-bound? *the-environment* symbol)
-    (set-widget-value! widget (environment-lookup *the-environment* symbol))
-    (environment-define *the-environment* symbol (widget-value widget)))
-  (let ((l (assq symbol widget-links)))
-    (if l
-      (set-cdr! l (cons widget (cdr l)))
-      (set! widget-links (cons (list symbol widget) widget-links))))
-  (add-widget-handler!
-    widget
-    (make-handler
-      symbol
-      (lambda (state)
-        (let ((value (cdr (assq 'value state))))
-          (for-each 
-            (lambda (w) 
-              (if (not (eq? w widget)) 
-                (set-widget-value! w value)))
-            (cdr (assq symbol widget-links)))
-          (environment-assign! *the-environment* symbol value))))))
+(define (create-widget-state layout #!optional style value)
+  (let ((v (if (default-object? value) '() (list (cons 'value value))))
+        (s (if (default-object? style) '() (list (cons 'style (make-widget-model style))))))
+    (print v s)
+    (print (make-widget-model layout))
+    (append (list (cons 'layout (make-widget-model layout))) v s)))
 
-(define (clear-all-links!)
-  (set! widget-links '()))
+(define ((create-widget name #!optional style-name) #!optional value)
+  (let ((layout (make-widget "LayoutModel" "LayoutView"))
+        (style (if (default-object? style-name) 
+                  #!default
+                  (make-widget
+                    (string-append style-name "StyleModel") 
+                    "StyleView")))
+        (model (string-append name "Model"))
+        (view (string-append name "View")))
+    (let ((state (create-widget-state layout style value)))
+      (print state)
+      (let ((widget (make-widget model view state)))
+        (display-widget widget)
+        widget))))
 
-(define (clear-links! symbol)
-  (let ((l (assq symbol widget-links)))
-    (if l
-      (for-each
-        (lambda (w)
-          (del-assq! symbol (widget-handlers w)))
-        (cdr l)))))
+(define make-button (create-widget "Button" "Button"))
+(define make-int-slider (create-widget "IntSlider" "Slider"))
+(define make-float-slider (create-widget "FloatSlider"))
+(define make-int-text (create-widget "IntText"))
+(define make-float-text (create-widget "FloatText"))
+(define make-text (create-widget "Text"))
+(define make-textarea (create-widget "Textarea"))
+(define make-checkbox (create-widget "Checkbox"))
+(define make-toggle-button (create-widget "ToggleButton"))
+(define make-toggle-buttons (create-widget "ToggleButtons"))
+(define make-label (create-widget "Label"))
+(define make-bounded-int-text (create-widget "BoundedIntText"))
+(define make-bounded-float-text (create-widget "BoundedFloatText"))
+(define make-int-progress (create-widget "IntProgress" "Progress"))
+(define make-float-progress (create-widget "FloatProgress"))
+(define make-color-picker (create-widget "ColorPicker"))
+(define make-play (create-widget "Play"))
+
+
+(define (link source target)
+  (make-widget "LinkModel" #!unspecific
+    `((source . #(,(make-widget-model source) value))
+      (target . #(,(make-widget-model target) value)))))
+
+
+
+
+; (define make-handler cons)
+; (define handler-name car)
+; (define handler-effector cdr)
+; (define (handler? handler)
+;   (and
+;     (pair? handler)
+;     (symbol? (handler-name handler))
+;     (procedure? (handler-effector handler))
+;     (= 1 (procedure-arity-min (procedure-arity (cdr handler))))))
+
+; (define (add-widget-handler! widget handler)
+;   (assert (handler? handler))
+;   (set-widget-handlers!
+;     widget
+;     (cons handler (widget-handlers widget))))
+
+; (define (clear-widget-handlers! widget)
+;   (set-widget-handlers! widget '()))
+
+; (define (link widget symbol)
+;   (assert (symbol? symbol))
+;   (if (environment-bound? *the-environment* symbol)
+;     (set-widget-value! widget (environment-lookup *the-environment* symbol))
+;     (environment-define *the-environment* symbol (widget-value widget)))
+;   (let ((l (assq symbol widget-links)))
+;     (if l
+;       (set-cdr! l (cons widget (cdr l)))
+;       (set! widget-links (cons (list symbol widget) widget-links))))
+;   (add-widget-handler!
+;     widget
+;     (make-handler
+;       symbol
+;       (lambda (state)
+;         (let ((value (cdr (assq 'value state))))
+;           (for-each 
+;             (lambda (w) 
+;               (if (not (eq? w widget)) 
+;                 (set-widget-value! w value)))
+;             (cdr (assq symbol widget-links)))
+;           (environment-assign! *the-environment* symbol value))))))
+
+; (define (clear-all-links!)
+;   (set! widget-links '()))
+
+; (define (clear-links! symbol)
+;   (let ((l (assq symbol widget-links)))
+;     (if l
+;       (for-each
+;         (lambda (w)
+;           (del-assq! symbol (widget-handlers w)))
+;         (cdr l)))))
