@@ -6,7 +6,7 @@ Jupyter Kernel for MIT Scheme
 ## Installation
 
 ### Docker
-[Kevin Kwok](https://github.com/antimatter15) published a [docker image](https://github.com/antimatter15/jupyter-mit-scheme) that does all the things:
+[Kevin Kwok](https://github.com/antimatter15) published a [docker image](https://hub.docker.com/r/kkwok/jupyter-mit-scheme/) that does all the things:
 ```
 docker run -it --rm -p 8888:8888 kkwok/jupyter-mit-scheme
 ```
