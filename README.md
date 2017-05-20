@@ -47,3 +47,6 @@ MIT Scheme Kernel
 In [1]: (fold-left cons '() (iota 4))
 Out[1]: ((((() . 0) . 1) . 2) . 3)
 ```
+
+### Future
+If anyone would like to write a decent interactive debugger like Edwin's that'd be dope.
