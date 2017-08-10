@@ -48,5 +48,7 @@ In [1]: (fold-left cons '() (iota 4))
 Out[1]: ((((() . 0) . 1) . 2) . 3)
 ```
 
+macOS *should* work but is sometimes funky; if you get stuck on `ld: file not found: scheme` inside `(link-shim)`, copy the printed `gcc...` command and run it after replacing `scheme` with the absolute path to the scheme executable (usually `/usr/local/bin/mit-scheme` or something). I don't actually know how makefiles work and made all of this by pattern-matching off previous work.
+
 ### Future
 If anyone would like to write a decent interactive debugger like Edwin's that'd be dope.
