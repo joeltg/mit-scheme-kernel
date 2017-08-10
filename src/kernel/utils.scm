@@ -42,7 +42,7 @@
   (cond
    ((string=? scheme "hmac-sha256")
     (let ((concat (apply string-append blobs))
-	  (sha256 (string-append "openssl sha256 -hmac " key))
+	  (sha256 (string-append "openssl dgst -sha256 -hmac " key))
 	  (stdout (open-output-string)))
       (run-shell-command sha256
 			 'input (open-input-string concat)
