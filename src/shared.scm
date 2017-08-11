@@ -1,5 +1,5 @@
 ;; Util
-(define (make-msg-id)
+(define (make-id)
   (number->string (random (expt 2 128)) 16))
 
 (define (valid-arity? procedure n)
@@ -16,8 +16,9 @@
   (apply print "default pub!" args))
 
 (define-structure
-  (session (constructor initialize-session (uuid)))
-  (uuid)
+  (session (constructor initialize-session (identity id)))
+  (identity)
+  (id)
   (pub default-pub)
   (count 0)
   (stdio #!unspecific)
@@ -36,7 +37,7 @@
   (comm (constructor initialize-comm (session target #!optional id)))
   (session)
   (target)
-  (id (make-msg-id)))
+  (id (make-id)))
 
 (define (make-comm session target #!optional id)
   (let ((comm (initialize-comm session target id)))
