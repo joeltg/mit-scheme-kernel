@@ -58,5 +58,4 @@
     (let ((json (list header parent '() content)))
       (let ((blobs (map json-encode json)))
 	(let ((hmac (make-hmac signature-scheme key blobs)))
-	  (pp (list "sending" identity delimiter hmac blobs))
 	  (apply zmq-send-list socket identity delimiter hmac blobs))))))
