@@ -4,7 +4,9 @@
 (load "json/json-decode")
 (load "zmq/zmq")
 
+(define source-pathname (working-directory-pathname))
 (define shared-env (make-top-level-environment))
+(environment-define shared-env '*source-pathname* source-pathname)
 (load "shared" shared-env)
 (define env (the-environment))
 (for-each
@@ -26,6 +28,9 @@
 (load "kernel/comm/widget/backbone")
 (load "kernel/comm/widget/custom")
 (load "kernel/kernel")
+
+(if (environment-bound? env 'pathname)
+	(cd pathname))
 
 (define args (command-line))
 (assert (> (length args) 0))

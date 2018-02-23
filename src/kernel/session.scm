@@ -1,6 +1,8 @@
 ;; a session has an id (from client), an execution counter,
 ;; and an environment
 
+(define runtime (merge-pathnames source-pathname "runtime.scm"))
+
 (define (prepare-session! session pub)
   (set-session-pub! session pub)
   (let ((env (session-env session)))
@@ -9,7 +11,7 @@
 (define session-ref (association-procedure string=? session-id))
 
 (define (initialize-env! env)
-  (load "runtime.scm" env))
+  (load runtime env))
 
 (define (make-session identity id)
   (let ((session (initialize-session identity id)))

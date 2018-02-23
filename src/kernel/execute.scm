@@ -9,10 +9,11 @@
 	  (iter (read code) (cons expression expressions))))))
 
 (define (evaluate session content pub)
-;;   (prepare-session! session pub)
   (fold-right
    (lambda (exp pre)
-     (eval exp (session-env session)))
+     (let ((env (session-env session)))
+       (ge env)
+       (eval exp env)))
    none
    (get-expressions content)))
   
