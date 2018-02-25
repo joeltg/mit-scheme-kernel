@@ -1,3 +1,5 @@
+(import "../../utils" asss)
+
 (define comm-widget-name "jupyter.widget")
 
 (define widget-methods '())

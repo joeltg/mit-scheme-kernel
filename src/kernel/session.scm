@@ -1,7 +1,21 @@
 ;; a session has an id (from client), an execution counter,
 ;; and an environment
+(import "../shared"
+  initialize-session
+  session-id
+  session-env
+  session-count
+  session-stdio
+  set-session-pub!
+  set-session-count!
+  set-session-stdio!)
+(import "stdio" make-stdio)
 
-(define runtime (merge-pathnames source-pathname "runtime.scm"))
+(define runtime
+  (pathname-simplify
+    (merge-pathnames
+      "../runtime.scm"
+      (working-directory-pathname))))
 
 (define (prepare-session! session pub)
   (set-session-pub! session pub)
@@ -22,3 +36,9 @@
 
 (define (session-count! session)
   (set-session-count! session (+ 1 (session-count session))))
+
+(export
+  prepare-session!
+  session-ref
+  make-session
+  session-count!)

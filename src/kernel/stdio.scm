@@ -1,3 +1,4 @@
+(import "../shared" session-stdio session-pub)
 
 (define (with-stdio session thunk)
   (with-output-to-port (session-stdio session) thunk))
@@ -24,3 +25,5 @@
 
 (define (make-stdio session)
   (make-port stdio-port-type session))
+
+(export with-stdio make-stdio)

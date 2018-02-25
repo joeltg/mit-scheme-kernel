@@ -1,3 +1,27 @@
+(import "../json/json-decode" json-decode)
+
+(import "../zmq"
+  zmq-pollin?
+  zmq-receive
+  make-zmq-context
+  make-zmq-socket
+  make-zmq-pollitems
+  zmq-socket-bind
+  zmq-send
+  zmq-poll
+  zmq-send-list
+  zmq-pollitem-revents)
+
+(import "../shared" set-session-pub!)
+(import "utils" send asss vector-ref-0)
+(import "info" kernel-info-request)
+(import "shutdown" shutdown-request)
+(import "session" session-ref make-session)
+(import "complete" is-complete-request)
+(import "execute" execute-request)
+(import "comm/comm" comm-info-request comm-open comm-msg)
+(import "comm/version")
+
 (define delimiter "<IDS|MSG>")
 
 (define get-header car)
@@ -53,13 +77,13 @@
       (cdr route)
 	    (error "invalid message type"))))
 
-(define ((make-reply socket identity parent) msg-type content)
-  (send socket identity parent msg-type content))
+(define ((make-reply socket identity parent signature-scheme key) msg-type content)
+  (send socket identity parent msg-type signature-scheme key content))
 
-(define ((make-pub iopub-socket identity parent) msg-type content)
-  (send iopub-socket identity parent msg-type content))
+(define ((make-pub iopub-socket identity parent signature-scheme key) msg-type content)
+  (send iopub-socket identity parent msg-type signature-scheme key content))
 
-(define ((make-handler iopub-socket get-session) socket env)
+(define ((make-handler iopub-socket get-session signature-scheme key) socket env)
   (let ((blobs (reverse (fold-left (shell-fold socket) '() lengths))))
     (let ((identity (car blobs))
 	  (deli (cadr blobs))
@@ -69,8 +93,8 @@
       (let ((content (get-content json))
 	    (header (get-header json)))
         (let ((session (get-session identity header))
-              (reply (make-reply socket identity header))
-              (pub (make-pub iopub-socket identity header)))
+              (reply (make-reply socket identity header signature-scheme key))
+              (pub (make-pub iopub-socket identity header signature-scheme key)))
           (set-session-pub! session pub)
           (apply (router (cdr (assq 'msg_type header)))
 		 session content reply pub env))))))
@@ -124,7 +148,7 @@
 	    (set! sessions (cons s sessions))
 	    s))))
 
-  (define shell-handler (make-handler iopub-socket get-session))
+  (define shell-handler (make-handler iopub-socket get-session signature-scheme key))
   (define control-handler shell-handler)
   (define stdin-handler shell-handler)
 
@@ -141,3 +165,5 @@
      handlers
      sockets)
     (poll)))
+
+(export listen)

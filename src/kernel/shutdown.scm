@@ -1,3 +1,8 @@
+(import "../zmq"
+  zmq-socket-unbind
+  zmq-socket-close
+  zmq-context-terminate)
+
 (define (shutdown-reply reply content)
   (reply "shutdown_reply" content))
 
@@ -12,3 +17,5 @@
     (zmq-socket-close iopub-socket)
     (zmq-context-terminate context)
     (%exit))
+
+(export shutdown-request)

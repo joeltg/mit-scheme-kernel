@@ -1,3 +1,6 @@
+(import "../shared" session-pub session-count)
+(import "utils" colorize)
+
 (define (error-hook condition)
   (invoke-restart (find-restart 'jupyter-error)
 		  (condition-type/name (condition/type condition))
@@ -26,3 +29,5 @@
 	(fluid-let ((standard-error-hook error-hook))
 	  (thunk)
 	  "ok"))))))
+
+(export with-error)

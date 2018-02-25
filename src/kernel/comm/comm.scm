@@ -1,4 +1,9 @@
-(define comm-version "~2.1.4")
+(import "../../shared"
+  print
+  session-comms
+  comm-target
+  comm-id)
+(import "../utils" asss)
 
 (define comm-targets '())
 (define (add-comm-target! comm-target)
@@ -34,3 +39,9 @@
         (print "comm-target" comm-target)
         ((comm-target-handler comm-target) session pub id data))))
   (pub "status" '((execution_state . "idle"))))
+
+(export
+  make-comm-target
+  comm-info-request
+  comm-open comm-msg
+  add-comm-target!)

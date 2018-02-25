@@ -1,5 +1,5 @@
 (define *the-environment* (the-environment))
-(load (merge-pathnames *source-pathname* "widget"))
+; (load (merge-pathnames *source-pathname* "widget"))
 
 ; (load "widgets/slider")
 ; (load "widgets/progress")

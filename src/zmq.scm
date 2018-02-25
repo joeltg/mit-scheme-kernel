@@ -143,3 +143,18 @@
       (if (= -1 ret)
 	  (zmq-error "could not receive message")
 	  (parse-zmq-buffer buffer size ret)))))
+
+(export 
+  zmq-send
+  zmq-receive
+  zmq-poll
+  zmq-send-list
+  make-zmq-context
+  make-zmq-socket
+  make-zmq-pollitems
+  zmq-socket-bind
+  zmq-pollin?
+  zmq-socket-unbind
+  zmq-socket-close
+  zmq-context-terminate
+  zmq-pollitem-revents)

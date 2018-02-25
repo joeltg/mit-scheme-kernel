@@ -1,9 +1,11 @@
+(import "../json/json-encode" json-encode)
+(import "../zmq" zmq-send-list)
+(import "../shared" make-id)
+
 (define version "5.1.0")
+(define delimiter "<IDS|MSG>")
 
 (define asss (association-procedure string=? car))
-
-(define ((8b-ref string) k)
-  (vector-8b-ref string k))
 
 (define (vector-ref-0 vector)
   (if (and vector (vector? vector) (= 1 (vector-length vector)))
@@ -53,9 +55,11 @@
 		   (- (string-length hmac) 1)))))
    (else (warn "signature scheme not recognized") "")))
 
-(define (send socket identity parent msg-type content)
+(define (send socket identity parent msg-type signature-scheme key content)
   (let ((header (make-header parent msg-type)))
     (let ((json (list header parent '() content)))
       (let ((blobs (map json-encode json)))
 	(let ((hmac (make-hmac signature-scheme key blobs)))
 	  (apply zmq-send-list socket identity delimiter hmac blobs))))))
+
+(export delimiter send colorize asss vector-ref-0)

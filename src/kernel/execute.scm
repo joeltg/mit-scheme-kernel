@@ -1,5 +1,7 @@
-(define sessions '())
-(define none #!unspecific)
+(import "../shared" session-env session-count)
+(import "error" with-error)
+(import "stdio" with-stdio)
+(import "session" prepare-session! session-count!)
 
 (define (get-expressions content)
   (let ((code (open-input-string (cdr (assq 'code content)))))
@@ -14,7 +16,7 @@
      (let ((env (session-env session)))
        (ge env)
        (eval exp env)))
-   none
+  #!unspecific
    (get-expressions content)))
   
 (define (with-session session thunk)
@@ -53,3 +55,4 @@
 	   (user_expressions))))
 
 
+(export execute-request)

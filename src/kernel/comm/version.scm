@@ -1,3 +1,7 @@
+(import "comm" make-comm-target add-comm-target!)
+(import "../../shared" print make-comm send-comm-msg)
+
+(define comm-version "~2.1.4")
 (define comm-version-name "jupyter.widget.version")
 (define (comm-version-handler session pub id data)
   (if (cdr (assq 'validated data))

@@ -2,8 +2,6 @@
 	"argv": [
 		"mit-scheme",
 		"--silent",
-		"--eval",
-		"(define pathname (working-directory-pathname))",
 		"--load",
 		"/usr/local/share/jupyter/kernels/mit-scheme/load.scm",
 		"--",
