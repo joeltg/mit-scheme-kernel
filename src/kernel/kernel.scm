@@ -13,7 +13,7 @@
   zmq-pollitem-revents)
 
 (import "../shared" set-session-pub!)
-(import "utils" send asss vector-ref-0)
+(import "utils" delimiter send asss vector-ref-0)
 (import "info" kernel-info-request)
 (import "shutdown" shutdown-request)
 (import "session" session-ref make-session)
@@ -21,8 +21,9 @@
 (import "execute" execute-request)
 (import "comm/comm" comm-info-request comm-open comm-msg)
 (import "comm/version")
-
-(define delimiter "<IDS|MSG>")
+(import "comm/widget/widget")
+(import "comm/widget/backbone")
+(import "comm/widget/custom")
 
 (define get-header car)
 (define get-parent cadr)

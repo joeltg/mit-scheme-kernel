@@ -20,14 +20,13 @@
   (stdio #!unspecific)
   (env (extend-top-level-environment shared-env))
   (comms '())
-  ; (widgets '())
-  )
+  (widgets '()))
 
 (define (session-add-comm! session comm)
   (set-session-comms! session (cons comm (session-comms session))))
 
-; (define (session-add-widget! session widget)
-;   (set-session-widgets! session (cons widget (session-comms session))))
+(define (session-add-widget! session widget)
+  (set-session-widgets! session (cons widget (session-widgets session))))
 
 ;; Comm
 (define-structure
@@ -47,12 +46,12 @@
     (target_module . #!unspecific)
     (data . ,(if (default-object? data) '() data))))
 
-; (define (open-comm session target #!optional data)
-;   (let ((comm (make-comm session target)))
-;     ((session-pub session)
-;       "comm_open"
-;       (make-comm-content comm data))
-;     comm))
+(define (open-comm session target #!optional data)
+  (let ((comm (make-comm session target)))
+    ((session-pub session)
+      "comm_open"
+      (make-comm-content comm data))
+    comm))
 
 (define (send-comm-msg comm data)
   ((session-pub (comm-session comm))
@@ -63,23 +62,23 @@
       (data . ,data))))
 
 ; ;; Widget
-; (define-structure
-;   (widget (constructor initialize-widget (id comm model view state)))
-;   (id)
-;   (comm)
-;   (model)
-;   (view)
-;   (handler (lambda args #!unspecific))
-;   (state '())
-;   (handlers '()))
+(define-structure
+  (widget (constructor initialize-widget (id comm model view state)))
+  (id)
+  (comm)
+  (model)
+  (view)
+  (handler (lambda args #!unspecific))
+  (state '())
+  (handlers '()))
 
-; (define widget-ref (association-procedure string=? widget-id))
+(define widget-ref (association-procedure string=? widget-id))
 
-; (define (merge-states old new)
-;   (fold-right
-;     cons
-;     new
-;     (filter (lambda (e) (not (assq (car e) new))) old)))
+(define (merge-states old new)
+  (fold-right
+    cons
+    new
+    (filter (lambda (e) (not (assq (car e) new))) old)))
 
 (export
   make-id
@@ -94,24 +93,23 @@
   set-session-stdio!
   session-env
   session-comms
-  ; session-widgets
+  session-widgets
   session-add-comm!
-  ; session-add-widget!
+  session-add-widget!
   comm-session
   comm-target
   comm-id
   make-comm
-  ; open-comm
+  open-comm
   send-comm-msg
-  ; initialize-widget
-  ; widget-comm
-  ; widget-model
-  ; widget-ref
-  ; widget-handler
-  ; set-widget-handler!
-  ; widget-state
-  ; set-widget-state!
-  ; widget-handlers
-  ; set-widget-handlers!
-  ; merge-states
-)
+  initialize-widget
+  widget-comm
+  widget-model
+  widget-ref
+  widget-handler
+  set-widget-handler!
+  widget-state
+  set-widget-state!
+  widget-handlers
+  set-widget-handlers!
+  merge-states)

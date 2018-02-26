@@ -11,11 +11,17 @@
   set-session-stdio!)
 (import "stdio" make-stdio)
 
+(define source-directory 
+  (pathname-simplify
+    (merge-pathnames
+      "../"
+      (working-directory-pathname))))
+
 (define runtime
   (pathname-simplify
     (merge-pathnames
-      "../runtime.scm"
-      (working-directory-pathname))))
+      "runtime/runtime.scm"
+      source-directory)))
 
 (define (prepare-session! session pub)
   (set-session-pub! session pub)
@@ -24,14 +30,17 @@
 
 (define session-ref (association-procedure string=? session-id))
 
-(define (initialize-env! env)
-  (load runtime env))
+(define (initialize-env! session)
+  (let ((env (session-env session)))
+    (environment-define env '*source-directory* source-directory)
+    (environment-define env '*session* session)
+    (load runtime env)))
 
 (define (make-session identity id)
   (let ((session (initialize-session identity id)))
     (set-session-stdio! session (make-stdio #f))
     (set-port/state! (session-stdio session) session)
-    (initialize-env! (session-env session))
+    (initialize-env! session)
     session))
 
 (define (session-count! session)

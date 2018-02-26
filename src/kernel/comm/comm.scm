@@ -34,9 +34,7 @@
   (let ((id (cdr (assq 'comm_id content)))
 	      (data (cdr (assq 'data content))))
     (let ((target-name (comm-target (comm-ref id (session-comms session)))))
-      (print "comm-msg" target-name)
       (let ((comm-target (get-comm-target target-name)))
-        (print "comm-target" comm-target)
         ((comm-target-handler comm-target) session pub id data))))
   (pub "status" '((execution_state . "idle"))))
 

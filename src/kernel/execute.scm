@@ -12,12 +12,11 @@
 
 (define (evaluate session content pub)
   (fold-right
-   (lambda (exp pre)
-     (let ((env (session-env session)))
-       (ge env)
-       (eval exp env)))
-  #!unspecific
-   (get-expressions content)))
+    (lambda (exp pre)
+      (let ((env (session-env session)))
+        (eval exp env)))
+    #!unspecific
+    (get-expressions content)))
   
 (define (with-session session thunk)
   (with-error session
@@ -54,5 +53,4 @@
 	   (payload)
 	   (user_expressions))))
 
-
-(export execute-request)
+(export execute-request with-session)
