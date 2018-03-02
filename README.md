@@ -48,4 +48,5 @@ In [1]: (fold-left cons '() (iota 4))
 Out[1]: ((((() . 0) . 1) . 2) . 3)
 ```
 
+### macOS Compatibility
 On macOS/OS X, installation might fail with `ld: file not found: scheme` inside `(link-shim)`. If this happens, you'll have to find and edit your system's `shim-config.scm` to make sure the `-bundle-loader` flag of `LINK-SHIM` points to your Scheme executable. In my case, `shim-config.scm` was located in `/usr/local/lib/mit-scheme-c/`, and I had to change `-bundle_loader scheme` to `-bundle_loader /usr/local/bin/mit-scheme`. Your mileage may vary. Computers are weird.
