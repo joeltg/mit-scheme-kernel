@@ -1,9 +1,15 @@
+# SCMUTILS = /usr/local/scmutils/mit-scheme
+# SCHEME = $(SCMUTILS)/bin/scheme --library $(SCMUTILS)/lib/
+# SCHEME = scheme --library $(SCMUTILS)/lib/
+# SCHEME = $(SCMUTILS)/bin/scheme
+SCHEME = scheme
+
 all: build
 
 install: install-zmq install-kernel
 
 install-zmq:
-	echo '(install-shim "$(DESTDIR)" "zmq")' | mit-scheme --batch-mode
+	echo '(install-shim "$(DESTDIR)" "zmq")' | $(SCHEME) --batch-mode
 
 install-kernel: make-directory copy-files
 
@@ -19,16 +25,16 @@ clean:
 build: zmq-shim.so zmq-types.bin zmq-const.bin
 
 zmq-shim.so: zmq-shim.o
-	echo "(link-shim)" | mit-scheme --batch-mode -- -o $@ $^ -L/usr/local/lib -lzmq
+	echo "(link-shim)" | $(SCHEME) --batch-mode -- -o $@ $^ -L/usr/local/lib -lzmq
 
 zmq-shim.o: zmq-shim.c
-	echo '(compile-shim)' | mit-scheme --batch-mode -- -I/usr/local/include -c $<
+	echo '(compile-shim)' | $(SCHEME) --batch-mode -- -I/usr/local/include -c $<
 
 zmq-shim.c zmq-const.c zmq-types.bin: zmq.cdecl
-	echo '(generate-shim "zmq" "#include <zmq.h>")' | mit-scheme --batch-mode
+	echo '(generate-shim "zmq" "#include <zmq.h>")' | $(SCHEME) --batch-mode
 
 zmq-const.bin: zmq-const.scm
-	echo '(sf "zmq-const")' | mit-scheme --batch-mode
+	echo '(sf "zmq-const")' | $(SCHEME) --batch-mode
 
 zmq-const.scm: zmq-const
 	./zmq-const

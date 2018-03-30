@@ -3,8 +3,8 @@
 		  (condition-type/name (condition/type condition))
 		  (condition/report-string condition)))
 
-(define ((effector kappa session) name report )
-  (error-result session name report )
+(define ((effector kappa session) name report)
+  (error-result session name report)
   (kappa "error"))
 
 (define (error-result session name report )
@@ -15,6 +15,8 @@
 		   (user_expressions))))
     ((session-pub session) "error" content)))
 
+(define has-fluid (environment-bound? (the-environment) 'let-fluid))
+
 (define (with-error session thunk)
   (call-with-current-continuation
    (lambda (kappa)
@@ -23,6 +25,11 @@
       (effector kappa session)
       #f
       (lambda ()
-	(fluid-let ((standard-error-hook error-hook))
-	  (thunk)
-	  "ok"))))))
+        (if has-fluid
+          (let-fluid standard-error-hook error-hook 
+            (lambda ()
+              (thunk)
+              "ok"))
+          (fluid-let ((standard-error-hook error-hook))
+            (thunk)
+            "ok")))))))

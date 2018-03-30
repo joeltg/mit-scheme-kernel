@@ -5,7 +5,14 @@
 (load "zmq/zmq")
 
 (define source-pathname (working-directory-pathname))
-(define shared-env (make-top-level-environment))
+
+;; (define shared-env (make-top-level-environment))
+(define parent-env (environment-parent (the-environment)))
+(define shared-env
+	(if parent-env
+		(extend-top-level-environment parent-env)
+		(make-top-level-environment)))
+
 (environment-define shared-env '*source-pathname* source-pathname)
 (load "shared" shared-env)
 (define env (the-environment))

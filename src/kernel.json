@@ -1,6 +1,6 @@
 {
 	"argv": [
-		"mit-scheme",
+		"scheme",
 		"--silent",
 		"--eval",
 		"(define pathname (working-directory-pathname))",
