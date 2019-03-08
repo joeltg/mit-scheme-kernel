@@ -8,5 +8,5 @@
 		"{connection_file}"
 	],
 	"display_name": "MIT Scheme",
-	"language": "scheme"
+	"language": "mit-scheme"
 }

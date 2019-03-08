@@ -1,7 +1,7 @@
-(import "../shared" session-env session-count)
-(import "error" with-error)
-(import "stdio" with-stdio)
-(import "session" prepare-session! session-count!)
+(import-from "../shared" session-env session-count)
+(import-from "error" with-error)
+(import-from "stdio" with-stdio)
+(import-from "session" prepare-session! session-count!)
 
 (define (get-expressions content)
   (let ((code (open-input-string (cdr (assq 'code content)))))
@@ -53,4 +53,4 @@
 	   (payload)
 	   (user_expressions))))
 
-(export execute-request with-session)
+(export-to execute-request with-session)

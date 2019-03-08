@@ -1,80 +1,5 @@
 (typedef size_t uint)
-
-;; 0MQ errors.
-
-(extern int
-  zmq_errno)
-
-(extern (* (const char))
-  zmq_strerror
-  (errnum int))
-
-;; 0MQ infrastructure (a.k.a. context) initialisation & termination.
-
-(extern (* void)
-  zmq_ctx_new)
-
-(extern int
-  zmq_ctx_term
-  (context (* void)))
-
-(extern int
-  zmq_ctx_shutdown
-  (context (* void)))
-
-;; 0MQ socket events and monitoring
-
-(extern (* void)
-  zmq_socket
-  (ctx (* void))
-  (type int))
-
-(extern int
-  zmq_close
-  (s (* void)))
-
-(extern int
-  zmq_bind
-  (s (* void))
-  (addr (* (const char))))
-
-(extern int
-  zmq_connect
-  (s (* void))
-  (addr (* (const char))))
-
-(extern int
-  zmq_unbind
-  (s (* void))
-  (addr (* (const char))))
-
-(extern int
-  zmq_disconnect
-  (s (* void))
-  (addr (* (const char))))
-
-(extern int
-  zmq_send
-  (s (* void))
-  (buf (* void))
-  (len size_t)
-  (flags int))
-
-(extern int
-  zmq_recv
-  (s (* void))
-  (buf (* void))
-  (len size_t)
-  (flags int))
-
-(extern int
-  zmq_socket_monitor
-  (s (* void))
-  (addr (* char))
-  (events int))
-
-
-;; I/O Multiplexing.
+(typedef uint32_t uint)
 
 (typedef zmq_pollitem_t
   (struct zmq_pollitem_t
@@ -83,9 +8,378 @@
     (events short)
     (revents short)))
 
+#|
+(extern int
+  zmq_atomic_counter_dec
+  (counter (* void)))
+
+(extern void
+  zmq_atomic_counter_destroy
+  (counter_p (* (* void))))
+
+(extern int
+  zmq_atomic_counter_inc
+  (counter (* void)))
+
+(extern (* void)
+  zmq_atomic_counter_new)
+
+(extern void
+  zmq_atomic_counter_set
+  (counter (* void))
+  (value int))
+
+(extern int
+  zmq_atomic_counter_value
+  (counter (* void)))
+|#
+
+(extern int
+  zmq_bind
+  (socket (* void))
+  (endpoint (* (const char))))
+
+(extern int
+  zmq_close
+  (socket (* void)))
+
+(extern int
+  zmq_connect
+  (socket (* void))
+  (endpoint (* (const char))))
+
+(extern int
+  zmq_ctx_destroy
+  (context (* void)))
+
+(extern int
+  zmq_ctx_get
+  (context (* void))
+  (option_name int))
+
+(extern (* void)
+  zmq_ctx_new)
+
+(extern int
+  zmq_ctx_set
+  (context (* void))
+  (option_name int)
+  (option_value int))
+
+(extern int
+  zmq_ctx_shutdown
+  (context (* void)))
+
+(extern int
+  zmq_ctx_term
+  (context (* void)))
+
+(extern int
+  zmq_curve_keypair
+  (z85_public_key (* char))
+  (z85_secret_key (* char)))
+
+(extern int
+  zmq_curve_public
+  (z85_public_key (* char))
+  (z85_secret_key (* char)))
+
+(extern int
+  zmq_disconnect
+  (socket (* void))
+  (endpoint (* (const char))))
+
+(extern int
+  zmq_errno)
+
+(extern int
+  zmq_getsockopt
+  (socket (* void))
+  (option_name int)
+  (option_value (* void))
+  (option_len (* size_t)))
+
+(extern int
+  zmq_has
+  (capability (* (const char))))
+
+(extern int
+  zmq_msg_close
+  (msg (* zmq_msg_t)))
+
+(extern int
+  zmq_msg_copy
+  (dest (* zmq_msg_t))
+  (src (* zmq_msg_t)))
+
+(extern (* void)
+  zmq_msg_data
+  (msg (* zmq_msg_t)))
+
+(extern (* (const char))
+  zmq_msg_gets
+  (message (* zmq_msg_t))
+  (property (* (const char))))
+
+(extern int
+  zmq_msg_get
+  (message (* zmq_msg_t))
+  (property int))
+
+(callback void
+  zmq_free_fn
+  (data (* void))
+  (ID (* void)))
+
+(extern int
+  zmq_msg_init_data
+  (msg (* zmq_msg_t))
+  (data (* void))
+  (size size_t)
+  (ffn (* zmq_free_fn))
+  (ID (* void)))
+
+(extern int
+  zmq_msg_init_size
+  (msg (* zmq_msg_t))
+  (size size_t))
+
+(extern int
+  zmq_msg_init
+  (msg (* zmq_msg_t)))
+
+(extern int
+  zmq_msg_more
+  (message (* zmq_msg_t)))
+
+(extern int
+  zmq_msg_move
+  (dest (* zmq_msg_t))
+  (src (* zmq_msg_t)))
+
+(extern int
+  zmq_msg_recv
+  (msg (* zmq_msg_t))
+  (socket (* void))
+  (flags int))
+
+#|
+(extern uint32_t
+  zmq_msg_routing_id
+  (message (* zmq_msg_t)))
+|#
+
+(extern int
+  zmq_msg_send
+  (msg (* zmq_msg_t))
+  (socket (* void))
+  (flags int))
+
+#|
+(extern int
+  zmq_msg_set_routing_id
+  (message (* zmq_msg_t))
+  (routing_id uint32_t))
+|#
+
+(extern int
+  zmq_msg_set
+  (msg (* zmq_msg_t))
+  (property int)
+  (value int))
+
+(extern size_t
+  zmq_msg_size
+  (msg (* zmq_msg_t)))
+
+#|
+(extern (* void)
+  zmq_poller_new)
+
+(extern int
+  zmq_poller_destroy
+  (poller_p (* (* void))))
+
+(extern int
+  zmq_poller_add
+  (poller (* void))
+  (socket (* void))
+  (user_data (* void))
+  (events short))
+
+(extern int
+  zmq_poller_modify
+  (poller (* void))
+  (socket (* void))
+  (events short))
+
+(extern int
+  zmq_poller_remove
+  (poller (* void))
+  (socket (* void)))
+
+(extern int
+  zmq_poller_add_fd
+  (poller (* void))
+  (fd int)
+  (user_data (* void))
+  (events short))
+
+(extern int
+  zmq_poller_modify_fd
+  (poller (* void))
+  (fd int)
+  (events short))
+
+(extern int
+  zmq_poller_remove_fd
+  (poller (* void))
+  (fd int))
+
+(typedef zmq_poller_event_t
+  (struct zmq_poller_event_t
+    (socket (* void))
+    (fd int)
+    (user_data (* void))
+    (events short)))
+
+(extern int
+  zmq_poller_wait_all
+  (poller (* void))
+  (events (* zmq_poller_event_t))
+  (n_events int)
+  (timeout long))
+|#
+
 (extern int
   zmq_poll
   (items (* zmq_pollitem_t))
   (nitems int)
   (timeout long))
+
+(extern int
+  zmq_proxy_steerable
+  (frontend (* void))
+  (backend (* void))
+  (capture (* void))
+  (control (* void)))
+
+(extern int
+  zmq_proxy
+  (frontend (* void))
+  (backend (* void))
+  (capture (* void)))
+
+(extern int
+  zmq_recv
+  (socket (* void))
+  (buf (* void))
+  (len size_t)
+  (flags int))
+
+(extern int
+  zmq_send_const
+  (socket (* void))
+  (buf (* void))
+  (len size_t)
+  (flags int))
+
+(extern int
+  zmq_send
+  (socket (* void))
+  (buf (* void))
+  (len size_t)
+  (flags int))
+
+(extern int
+  zmq_setsockopt
+  (socket (* void))
+  (option_name int)
+  (option_value (* void))
+  (option_len size_t))
+
+(extern int
+  zmq_socket_monitor
+  (socket (* void))
+  (endpoint (* char))
+  (events int))
+
+(extern (* void)
+  zmq_socket
+  (context (* void))
+  (type int))
+
+(extern (* (const char))
+  zmq_strerror
+  (errnum int))
+
+(extern int
+  zmq_term
+  (context (* void)))
+
+(callback void
+  zmq_timer_fn
+  (timer_id int)
+  (ID (* void)))
+
+(extern (* void)
+  zmq_timers_new)
+
+(extern int
+  zmq_timers_destroy
+  (timers_p (* (* void))))
+
+(extern int
+  zmq_timers_add
+  (timers (* void))
+  (interval size_t)
+  (handler zmq_timer_fn)
+  (ID (* void)))
+
+(extern int
+  zmq_timers_cancel
+  (timers (* void))
+  (timer_id int))
+
+(extern int
+  zmq_timers_set_interval
+  (timers (* void))
+  (timer_id int)
+  (interval size_t))
+
+(extern int
+  zmq_timers_reset
+  (timers (* void))
+  (timer_id int))
+
+(extern long
+  zmq_timers_timeout
+  (timers (* void)))
+
+(extern int
+  zmq_timers_execute
+  (timers (* void)))
+
+(extern int
+  zmq_unbind
+  (socket (* void))
+  (endpoint (* (const char))))
+
+(extern void
+  zmq_version
+  (major (* int))
+  (minor (* int))
+  (patch (* int)))
+
+(extern (* uint8_t)
+  zmq_z85_decode
+  (dest (* uint8_t))
+  (string (* (const char))))
+
+(extern (* char)
+  zmq_z85_encode
+  (dest (* char))
+  (data (* (const uint8_t)))
+  (size size_t))
+
 

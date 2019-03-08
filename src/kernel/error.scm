@@ -1,5 +1,5 @@
-(import "../shared" session-pub session-count)
-(import "utils" colorize)
+(import-from "../shared" session-pub session-count)
+(import-from "utils" colorize)
 
 (define (error-hook condition)
   (invoke-restart (find-restart 'jupyter-error)
@@ -30,4 +30,4 @@
 	  (thunk)
 	  "ok"))))))
 
-(export with-error)
+(export-to with-error)

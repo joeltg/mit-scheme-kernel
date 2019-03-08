@@ -1,5 +1,5 @@
-(import "../../../shared" print)
-(import "widget" make-widget-method add-widget-method!)
+(import-from "../../../shared" print)
+(import-from "widget" make-widget-method add-widget-method!)
 (define custom-name "custom")
 
 (define (custom-handler session widget data)

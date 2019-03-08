@@ -21,4 +21,4 @@
 (define (kernel-info-reply reply)
   (reply "kernel_info_reply" kernel-info))
 
-(export kernel-info-request)
+(export-to kernel-info-request)

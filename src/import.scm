@@ -7,8 +7,8 @@
 	(environment-define nie 'export-env nee)
 	(environment-define nie 'import-list (make-import-list nie ht))
 	(environment-define nie 'export-list (make-export-list nie nee))
-	(link-variables nie 'import ie 'import)
-	(link-variables nie 'export ie 'export))
+	(link-variables nie 'import-from ie 'import-from)
+	(link-variables nie 'export-to ie 'export-to))
 
 (define (copy-bindings symbols source-env target-env)
 	(for-each
@@ -16,14 +16,14 @@
 			(link-variables target-env symbol source-env symbol))
 		symbols))
 
-(define-syntax import
+(define-syntax import-from
 	(er-macro-transformer
 		(lambda (exp rename compare)
 			(let ((path (cadr exp))
 						(names (cddr exp)))
 				`(import-list ,path (quote ,names))))))
 
-(define-syntax export
+(define-syntax export-to
 	(er-macro-transformer
 		(lambda (exp rename compare)
 			(let ((names (cdr exp)))

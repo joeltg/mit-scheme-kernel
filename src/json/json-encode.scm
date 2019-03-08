@@ -88,4 +88,4 @@
 (define (json-encode object)
   (list->string (car (json object))))
 
-(export json-encode)
+(export-to json-encode)

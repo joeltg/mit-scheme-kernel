@@ -1,6 +1,6 @@
-(import "../../../shared" print make-comm widget-ref session-widgets)
-(import "../../utils" asss)
-(import "../comm" make-comm-target add-comm-target!)
+(import-from "../../../shared" print make-comm widget-ref session-widgets)
+(import-from "../../utils" asss)
+(import-from "../comm" make-comm-target add-comm-target!)
 
 (define comm-widget-name "jupyter.widget")
 
@@ -28,4 +28,4 @@
     (make-comm-target comm-widget-name comm-widget-open comm-widget-handler))
 (add-comm-target! comm-target-widget)
 
-(export make-widget-method widget-method-name widget-method-handler add-widget-method!)
+(export-to make-widget-method widget-method-name widget-method-handler add-widget-method!)

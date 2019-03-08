@@ -1,5 +1,5 @@
-(import "../../../shared" print merge-states widget-handlers widget-state set-widget-state!)
-(import "widget" make-widget-method add-widget-method!)
+(import-from "../../../shared" print merge-states widget-handlers widget-state set-widget-state!)
+(import-from "widget" make-widget-method add-widget-method!)
 (define backbone-name "backbone")
 
 (define (backbone-handler session widget data)

@@ -1,4 +1,4 @@
-(import (merge-pathnames "shared" *source-directory*)
+(import-from (merge-pathnames "shared" *source-directory*)
   session-add-comm!
   session-add-widget!
   session-pub

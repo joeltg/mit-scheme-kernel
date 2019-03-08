@@ -1,58 +1,45 @@
-(import "../json/json-decode" json-decode)
+(import-from "../json/json-decode" json-decode)
 
-(import "../zmq"
-  zmq-pollin?
-  zmq-receive
+(import-from "../zmq"
   make-zmq-context
   make-zmq-socket
-  make-zmq-pollitems
-  zmq-socket-bind
-  zmq-send
-  zmq-poll
-  zmq-send-list
-  zmq-pollitem-revents)
+  zmq-socket/bind!
 
-(import "../shared" set-session-pub!)
-(import "utils" delimiter send asss vector-ref-0)
-(import "info" kernel-info-request)
-(import "shutdown" shutdown-request)
-(import "session" session-ref make-session)
-(import "complete" is-complete-request)
-(import "execute" execute-request)
-(import "comm/comm" comm-info-request comm-open comm-msg)
-(import "comm/version")
-(import "comm/widget/widget")
-(import "comm/widget/backbone")
-(import "comm/widget/custom")
+  ; make-zmq-poller
+  ; zmq-poller/destroy!
+  ; zmq-poller/add!
+  ; zmq-poller/remove!
+  ; zmq-poller/wait
+
+  zmq-poll
+  zmq-pollitem/revents
+  make-zmq-pollitems
+  zmq-poll/event?
+  receive-message
+  receive-messages
+  zmq-message/echo!)
+
+(import-from "../shared" set-session-pub!)
+(import-from "utils" delimiter send asss vector-ref-0)
+(import-from "info" kernel-info-request)
+(import-from "shutdown" shutdown-request)
+(import-from "session" session-ref make-session)
+(import-from "complete" is-complete-request)
+(import-from "execute" execute-request)
+(import-from "comm/comm" comm-info-request comm-open comm-msg)
+(import-from "comm/version")
+(import-from "comm/widget/widget")
+(import-from "comm/widget/backbone")
+(import-from "comm/widget/custom")
 
 (define get-header car)
 (define get-parent cadr)
 (define get-metadata caddr)
 (define get-content cadddr)
 
-(define hb-length 4)
-(define identity-length 33)
-(define delimiter-length (string-length delimiter))
-(define signature-length 64)
-(define header-length 256)
-(define parent-length 256)
-(define metadata-length 2)
-(define content-length 4096)
-(define lengths
-  (list identity-length
-	delimiter-length
-	signature-length
-	header-length
-	parent-length
-	metadata-length
-	content-length))
-
 (define ((handle env) pollitem handler socket)
-  (if (zmq-pollin? (zmq-pollitem-revents pollitem))
-      (handler socket env)))
-
-(define ((shell-fold socket) blobs len)
-  (cons (zmq-receive socket len) blobs))
+  (if (zmq-poll/event? 'pollin (zmq-pollitem/revents pollitem))
+    (handler socket env)))
 
 (define (inspect-request  session content reply pub . env) #!unspecific)
 (define (complete-request session content reply pub . env) #!unspecific)
@@ -85,20 +72,20 @@
   (send iopub-socket identity parent msg-type signature-scheme key content))
 
 (define ((make-handler iopub-socket get-session signature-scheme key) socket env)
-  (let ((blobs (reverse (fold-left (shell-fold socket) '() lengths))))
+  (let ((blobs (reverse (receive-messages socket))))
     (let ((identity (car blobs))
-	  (deli (cadr blobs))
-	  (hmac (caddr blobs))
-	  (json (map vector-ref-0 (map json-decode (cdddr blobs)))))
-      (assert (string=? deli delimiter))
-      (let ((content (get-content json))
-	    (header (get-header json)))
+          (deli (cadr blobs))
+          (hmac (caddr blobs))
+          (json (map vector-ref-0 (map json-decode (map utf8->string (cdddr blobs))))))
+      (assert (bytevector=? deli delimiter))
+      (let ((header (get-header json))
+            (content (get-content json)))
         (let ((session (get-session identity header))
               (reply (make-reply socket identity header signature-scheme key))
-              (pub (make-pub iopub-socket identity header signature-scheme key)))
+              (pub (make-pub iopub-socket identity header signature-scheme key))
+              (route (router (cdr (assq 'msg_type header)))))
           (set-session-pub! session pub)
-          (apply (router (cdr (assq 'msg_type header)))
-		 session content reply pub env))))))
+          (apply route session content reply pub env))))))
 
 (define (listen
 	 transport
@@ -134,8 +121,15 @@
   (define sockets (list hb-socket shell-socket control-socket stdin-socket))
   (define pollitems (make-zmq-pollitems 4 sockets))
 
-  (zmq-socket-bind iopub-socket iopub-endpoint)
-  (for-each zmq-socket-bind sockets endpoints)
+  ; (define poller-width (length sockets))
+  ; (define poller (make-zmq-poller))
+  ; (for-each
+  ;   (lambda (socket)
+  ;     (zmq-poller/add! poller socket 'pollin))
+  ;   sockets)
+
+  (zmq-socket/bind! iopub-socket iopub-endpoint)
+  (for-each zmq-socket/bind! sockets endpoints)
 
   (define env
     (list context endpoints sockets iopub-endpoint iopub-socket))
@@ -154,11 +148,12 @@
   (define stdin-handler shell-handler)
 
   (define (hb-handler socket env)
-    (zmq-send socket (zmq-receive socket hb-length)))
+    (zmq-message/echo! socket socket))
 
   (define handlers
     (list hb-handler shell-handler control-handler stdin-handler))
 
+  ; (define poller-events (malloc (* (c-sizeof ""))))
   (let poll ()
     (zmq-poll (car pollitems) (length pollitems) -1)
     (for-each (handle env)
@@ -167,4 +162,4 @@
      sockets)
     (poll)))
 
-(export listen)
+(export-to listen)

@@ -1,16 +1,20 @@
-(import "../json/json-encode" json-encode)
-(import "../zmq" zmq-send-list)
-(import "../shared" make-id)
+(import-from "../json/json-encode" json-encode)
+(import-from "../zmq" zmq-socket/send)
+(import-from "../shared" make-id)
+
+(load-option 'synchronous-subprocess)
 
 (define version "5.1.0")
-(define delimiter "<IDS|MSG>")
+
+; (define delimiter "<IDS|MSG>")
+(define delimiter #u8(60 73 68 83 124 77 83 71 62))
 
 (define asss (association-procedure string=? car))
 
 (define (vector-ref-0 vector)
   (if (and vector (vector? vector) (= 1 (vector-length vector)))
-      (vector-ref vector 0)
-      (error "could not parse json")))
+    (vector-ref vector 0)
+    (error "could not parse json")))
 
 (define (pad n l)
   (let ((s (number->string n)))
@@ -23,16 +27,16 @@
 (define (make-date)
   (let ((time (global-decoded-time)))
     (string-append
-     (pad (decoded-time/year   time) 4) "-"
-     (pad (decoded-time/month  time) 2) "-"
-     (pad (decoded-time/day    time) 2) "T"
-     (pad (decoded-time/hour   time) 2) ":"
-     (pad (decoded-time/minute time) 2) ":"
-     (pad (decoded-time/second time) 2) "Z")))
+      (pad (decoded-time/year   time) 4) "-"
+      (pad (decoded-time/month  time) 2) "-"
+      (pad (decoded-time/day    time) 2) "T"
+      (pad (decoded-time/hour   time) 2) ":"
+      (pad (decoded-time/minute time) 2) ":"
+      (pad (decoded-time/second time) 2) "Z")))
 
 (define (make-header parent msg-type)
   (let ((username (cdr (assq 'username parent)))
-	(session (cdr (assq 'session parent))))
+        (session (cdr (assq 'session parent))))
     `((msg_id . ,(make-id))
       (username . ,username)
       (session . ,session)
@@ -44,22 +48,22 @@
   (cond
    ((string=? scheme "hmac-sha256")
     (let ((concat (apply string-append blobs))
-	  (sha256 (string-append "openssl dgst -sha256 -hmac " key))
-	  (stdout (open-output-string)))
+	        (sha256 (string-append "openssl dgst -sha256 -hmac " key))
+	        (stdout (open-output-string)))
       (run-shell-command sha256
 			 'input (open-input-string concat)
 			 'output stdout)
       (let ((hmac (get-output-string stdout)))
-	(substring hmac
-		   (- (string-length hmac) 64 1)
-		   (- (string-length hmac) 1)))))
-   (else (warn "signature scheme not recognized") "")))
+	      (substring hmac
+          (- (string-length hmac) 64 1)
+          (- (string-length hmac) 1)))))
+    (else (warn "signature scheme not recognized") "")))
 
 (define (send socket identity parent msg-type signature-scheme key content)
   (let ((header (make-header parent msg-type)))
     (let ((json (list header parent '() content)))
       (let ((blobs (map json-encode json)))
-	(let ((hmac (make-hmac signature-scheme key blobs)))
-	  (apply zmq-send-list socket identity delimiter hmac blobs))))))
+        (let ((hmac (make-hmac signature-scheme key blobs)))
+          (apply zmq-socket/send socket identity delimiter hmac blobs))))))
 
-(export delimiter send colorize asss vector-ref-0)
+(export-to delimiter send colorize asss vector-ref-0)

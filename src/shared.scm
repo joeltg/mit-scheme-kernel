@@ -5,7 +5,7 @@
   (number->string (random (expt 2 128)) 16))
 
 (define (print . args)
-  (for-each (lambda (arg) (pp arg console-i/o-port)) args))
+  (for-each (lambda (arg) (pp arg (console-i/o-port))) args))
 
 ;; Session
 (define (default-pub . args)
@@ -80,7 +80,7 @@
     new
     (filter (lambda (e) (not (assq (car e) new))) old)))
 
-(export
+(export-to
   make-id
   print
   initialize-session

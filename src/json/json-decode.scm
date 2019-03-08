@@ -158,7 +158,7 @@
             (? (match (alt "+" "-")))
             (+ (match (char-set char-set:numeric)))))))))
 
-(define (json-decode json-string)
-  (json-value (string->parser-buffer json-string)))
+(define (json-decode input)
+  (json-value (string->parser-buffer input)))
 
-(export json-decode)
+(export-to json-decode)
