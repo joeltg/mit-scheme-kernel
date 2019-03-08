@@ -1,3 +1,4 @@
+SCHEME=/usr/local/bin/mit-scheme
 AUXDIR=/usr/local/lib/mit-scheme-x86-64
 DESTDIR=/usr/local/share/jupyter/kernels/mit-scheme
 
