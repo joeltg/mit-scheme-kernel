@@ -26,10 +26,10 @@ zmq-shim.o: zmq-shim.c
 	$(CC) -I$(AUXDIR) -Wall -fPIC `pkg-config --cflags libzmq` -o $@ -c $<
 
 zmq-shim.c zmq-const.c zmq-types.bin: zmq.cdecl
-	echo '(generate-shim "zmq" "#include <zmq.h>")' | mit-scheme --batch-mode
+	echo '(generate-shim "zmq" "#include <zmq.h>")' | $(SCHEME) --batch-mode
 
 zmq-const.bin: zmq-const.scm
-	echo '(sf "zmq-const")' | mit-scheme --batch-mode
+	echo '(sf "zmq-const")' | $(SCHEME) --batch-mode
 
 zmq-const.scm: zmq-const
 	./zmq-const

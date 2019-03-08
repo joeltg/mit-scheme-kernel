@@ -1,7 +1,8 @@
 (import-from "../shared" session-stdio session-pub)
 
 (define (with-stdio session thunk)
-  (with-output-to-port (session-stdio session) thunk))
+  (let ((port (session-stdio session)))
+    (with-output-to-port port thunk)))
 
 (define (stdio-write-char port char)
   ((session-pub (port/state port))

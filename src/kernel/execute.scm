@@ -29,7 +29,7 @@
   (prepare-session! session pub)
   (pub "execute_input"
        `(,(assq 'code content)
-	 (execution_count . ,(session-count session))))
+   (execution_count . ,(session-count session))))
   (execute-reply
    session reply
    (with-session session

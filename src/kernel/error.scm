@@ -6,8 +6,8 @@
 		  (condition-type/name (condition/type condition))
 		  (condition/report-string condition)))
 
-(define ((effector kappa session) name report )
-  (error-result session name report )
+(define ((effector kappa session) name report)
+  (error-result session name report)
   (kappa "error"))
 
 (define (error-result session name report )
@@ -17,6 +17,8 @@
 		   (execution_count . ,(session-count session))
 		   (user_expressions))))
     ((session-pub session) "error" content)))
+
+(define has-fluid (environment-bound? (the-environment) 'let-fluid))
 
 (define (with-error session thunk)
   (call-with-current-continuation
