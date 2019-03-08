@@ -1,15 +1,11 @@
+(define shared-env (the-environment))
+
 ;; Util
 (define (make-id)
   (number->string (random (expt 2 128)) 16))
 
-(define (valid-arity? procedure n)
-  (let ((arity (procedure-arity procedure)))
-    (and 
-      (>= n (procedure-arity-min arity))
-      (<= n (procedure-arity-max arity)))))
-
 (define (print . args)
-  (for-each (lambda (arg) (pp arg console-i/o-port)) args))
+  (for-each (lambda (arg) (pp arg (console-i/o-port))) args))
 
 ;; Session
 (define (default-pub . args)
@@ -30,7 +26,7 @@
   (set-session-comms! session (cons comm (session-comms session))))
 
 (define (session-add-widget! session widget)
-  (set-session-widgets! session (cons widget (session-comms session))))
+  (set-session-widgets! session (cons widget (session-widgets session))))
 
 ;; Comm
 (define-structure
@@ -65,7 +61,7 @@
       (target_module . #!unspecific)
       (data . ,data))))
 
-;; Widget
+; ;; Widget
 (define-structure
   (widget (constructor initialize-widget (id comm model view state)))
   (id)
@@ -83,3 +79,37 @@
     cons
     new
     (filter (lambda (e) (not (assq (car e) new))) old)))
+
+(export-to
+  make-id
+  print
+  initialize-session
+  session-id
+  session-pub
+  set-session-pub!
+  session-count
+  set-session-count!
+  session-stdio
+  set-session-stdio!
+  session-env
+  session-comms
+  session-widgets
+  session-add-comm!
+  session-add-widget!
+  comm-session
+  comm-target
+  comm-id
+  make-comm
+  open-comm
+  send-comm-msg
+  initialize-widget
+  widget-comm
+  widget-model
+  widget-ref
+  widget-handler
+  set-widget-handler!
+  widget-state
+  set-widget-state!
+  widget-handlers
+  set-widget-handlers!
+  merge-states)

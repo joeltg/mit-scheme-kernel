@@ -38,3 +38,4 @@
 (define (is-complete-reply content reply)
   (reply "is_complete_reply" (completion content)))
 
+(export-to is-complete-request)

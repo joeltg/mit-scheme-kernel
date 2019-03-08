@@ -1,5 +1,7 @@
-(define sessions '())
-(define none #!unspecific)
+(import-from "../shared" session-env session-count)
+(import-from "error" with-error)
+(import-from "stdio" with-stdio)
+(import-from "session" prepare-session! session-count!)
 
 (define (get-expressions content)
   (let ((code (open-input-string (cdr (assq 'code content)))))
@@ -10,12 +12,11 @@
 
 (define (evaluate session content pub)
   (fold-right
-   (lambda (exp pre)
-     (let ((env (session-env session)))
-       (ge env)
-       (eval exp env)))
-   none
-   (get-expressions content)))
+    (lambda (exp pre)
+      (let ((env (session-env session)))
+        (eval exp env)))
+    #!unspecific
+    (get-expressions content)))
   
 (define (with-session session thunk)
   (with-error session
@@ -52,4 +53,4 @@
 	   (payload)
 	   (user_expressions))))
 
-
+(export-to execute-request with-session)

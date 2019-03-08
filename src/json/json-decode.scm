@@ -1,9 +1,5 @@
 (load-option '*parser)
 
-(define json-decode)
-
-;;(let ()
-
 (define (json-vector-list v)
   (vector (vector->list v)))
 
@@ -162,7 +158,7 @@
             (? (match (alt "+" "-")))
             (+ (match (char-set char-set:numeric)))))))))
 
-(set! json-decode 
-  (lambda (json-string)
-    (json-value (string->parser-buffer json-string))));)
+(define (json-decode input)
+  (json-value (string->parser-buffer input)))
 
+(export-to json-decode)

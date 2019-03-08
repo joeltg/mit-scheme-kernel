@@ -94,33 +94,29 @@
 (define make-color-picker (create-widget "ColorPicker"))
 (define make-play (create-widget "Play"))
 
-
 (define (link source target)
   (make-widget "LinkModel" #!unspecific
     `((source . #(,(make-widget-model source) value))
       (target . #(,(make-widget-model target) value)))))
 
+(define make-handler cons)
+(define handler-name car)
+(define handler-effector cdr)
+(define (handler? handler)
+  (and
+    (pair? handler)
+    (symbol? (handler-name handler))
+    (procedure? (handler-effector handler))
+    (= 1 (procedure-arity-min (procedure-arity (cdr handler))))))
 
+(define (add-widget-handler! widget handler)
+  (assert (handler? handler))
+  (set-widget-handlers!
+    widget
+    (cons handler (widget-handlers widget))))
 
-
-; (define make-handler cons)
-; (define handler-name car)
-; (define handler-effector cdr)
-; (define (handler? handler)
-;   (and
-;     (pair? handler)
-;     (symbol? (handler-name handler))
-;     (procedure? (handler-effector handler))
-;     (= 1 (procedure-arity-min (procedure-arity (cdr handler))))))
-
-; (define (add-widget-handler! widget handler)
-;   (assert (handler? handler))
-;   (set-widget-handlers!
-;     widget
-;     (cons handler (widget-handlers widget))))
-
-; (define (clear-widget-handlers! widget)
-;   (set-widget-handlers! widget '()))
+(define (clear-widget-handlers! widget)
+  (set-widget-handlers! widget '()))
 
 ; (define (link widget symbol)
 ;   (assert (symbol? symbol))

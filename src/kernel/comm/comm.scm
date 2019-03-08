@@ -1,4 +1,9 @@
-(define comm-version "~2.1.4")
+(import-from "../../shared"
+  print
+  session-comms
+  comm-target
+  comm-id)
+(import-from "../utils" asss)
 
 (define comm-targets '())
 (define (add-comm-target! comm-target)
@@ -29,8 +34,12 @@
   (let ((id (cdr (assq 'comm_id content)))
 	      (data (cdr (assq 'data content))))
     (let ((target-name (comm-target (comm-ref id (session-comms session)))))
-      (print "comm-msg" target-name)
       (let ((comm-target (get-comm-target target-name)))
-        (print "comm-target" comm-target)
         ((comm-target-handler comm-target) session pub id data))))
   (pub "status" '((execution_state . "idle"))))
+
+(export-to
+  make-comm-target
+  comm-info-request
+  comm-open comm-msg
+  add-comm-target!)

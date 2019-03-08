@@ -1,3 +1,5 @@
+(import-from "../shared" session-stdio session-pub)
+
 (define (with-stdio session thunk)
   (let ((port (session-stdio session)))
     (with-output-to-port port thunk)))
@@ -17,10 +19,12 @@
   0)
 
 (define stdio-port-type
-  (make-port-type
+  (make-textual-port-type
    `((write-substring ,stdio-write-substring)
      (write-char ,stdio-write-char))
    #f))
 
 (define (make-stdio session)
-  (make-port stdio-port-type session))
+  (make-textual-port stdio-port-type session))
+
+(export-to with-stdio make-stdio)

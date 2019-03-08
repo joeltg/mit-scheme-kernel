@@ -1,3 +1,6 @@
+(import-from "../shared" session-pub session-count)
+(import-from "utils" colorize)
+
 (define (error-hook condition)
   (invoke-restart (find-restart 'jupyter-error)
 		  (condition-type/name (condition/type condition))
@@ -25,11 +28,8 @@
       (effector kappa session)
       #f
       (lambda ()
-        (if has-fluid
-          (let-fluid standard-error-hook error-hook 
-            (lambda ()
-              (thunk)
-              "ok"))
-          (fluid-let ((standard-error-hook error-hook))
-            (thunk)
-            "ok")))))))
+	(fluid-let ((standard-error-hook error-hook))
+	  (thunk)
+	  "ok"))))))
+
+(export-to with-error)
