@@ -20,8 +20,8 @@ First get MIT Scheme:
 
 ```
 $ wget https://ftp.gnu.org/gnu/mit-scheme/stable.pkg/10.1.5/mit-scheme-10.1.5-x86-64.tar.gz
-$ tar xvf tar xvf mit-scheme-10.1.5-x86-64.tar.gz
-$ cd cd mit-scheme-10.1.5/src/
+$ tar xvf mit-scheme-10.1.5-x86-64.tar.gz
+$ cd mit-scheme-10.1.5/src/
 $ ./configure
 $ make compile-microcode
 $ sudo make install
