@@ -21,7 +21,7 @@ clean:
 build: zmq-shim.so zmq-types.bin zmq-const.bin
 
 zmq-shim.so: zmq-shim.o
-	$(CC) -shared -fPIC -o $@ $^ `pkg-config --libs libzmq` -undefined dynamic_lookup
+	$(CC) -shared -fPIC -o $@ $^ `pkg-config --libs libzmq`
 
 zmq-shim.o: zmq-shim.c
 	$(CC) -I$(AUXDIR) -Wall -fPIC `pkg-config --cflags libzmq` -o $@ -c $<
