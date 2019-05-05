@@ -8,6 +8,7 @@ install: install-zmq install-kernel
 
 install-zmq:
 	install -m 644 zmq-types.bin $(AUXDIR)
+	install -m 644 zmq-const.bin $(AUXDIR)
 	install -m 644 zmq-const.scm $(AUXDIR)
 	install -m 644 zmq-shim.so $(AUXDIR)
 
