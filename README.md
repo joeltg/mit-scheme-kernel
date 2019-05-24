@@ -54,3 +54,5 @@ MIT Scheme Kernel
 In [1]: (fold-left cons '() (iota 4))
 Out[1]: ((((() . 0) . 1) . 2) . 3)
 ```
+
+Building on macOS may require adding a `-undefined dynamic_lookup` flag to the makefile in the line that builds `zmq-shim.so`.
