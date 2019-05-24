@@ -50,7 +50,6 @@
   (reply "execute_reply"
 	 `((status . ,status)
 	   (execution_count . ,(session-count session))
-	   (payload)
 	   (user_expressions))))
 
 (export-to execute-request with-session)
